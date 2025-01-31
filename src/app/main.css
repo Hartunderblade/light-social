@@ -1,0 +1,27 @@
+@import './base.css';
+@import url(../assets/styles/reset.css);
+
+#app {
+  font-weight: normal;
+}
+
+.container {
+  max-width: 1664px;
+  margin: 0 auto;
+}
+
+a{
+  text-decoration: none;
+}
+
+
+@media (max-width: 320px) {
+  body {
+    width:296px;
+    margin: 0 auto;
+    font-weight: normal;
+    display: flex;
+    /* flex-direction: column; */
+    align-items: center;
+  }
+}
