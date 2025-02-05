@@ -7,19 +7,10 @@ import { RouterLink, RouterView } from 'vue-router'
         <div class="content">
             <img class="content__logo" src="@/assets/images/logo-point.png" alt="">
             <RouterLink to="/user" ><img src="@/assets/images/icons/home.svg"></RouterLink>
-            <RouterLink to="/user/profile"><img src="@/assets/images/icons/profile.svg"></RouterLink>
-            <RouterLink to="/user/chatList"><img src="@/assets/images/icons/message.svg"></RouterLink>
-            <RouterLink to="/user/frends"><img src="@/assets/images/icons/frends.svg"></RouterLink>
         </div>
         <div class="content">
             <img class="content__settings" src="@/assets/images/icons/settings.svg">
         </div>
-        <!-- <div class="user">
-            <div style="color: red; width: 58px; height: 58px;"></div>
-            <svg width="14" height="8" viewBox="0 0 14 8" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M1 1L7 7L13 1" stroke="white" stroke-width="1.17474" stroke-linecap="round" stroke-linejoin="round" />
-              </svg>
-        </div> -->
     </nav>
 </template>
 

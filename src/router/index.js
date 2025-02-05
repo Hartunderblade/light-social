@@ -4,24 +4,45 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
-      path: '/home',
-      name: 'home',
-      component: () => import('@/pages/Home.vue'),
+      path: '/',
+      name: 'auth',
+      component: () => import('@/pages/Auth.vue'),
     },
     {
-      path: '/',
+      path: '/admin',
+      name: 'admin',
+      component: () => import('@/pages/Admin.vue')
+      // meta: { requiresAuth: true }
+    },
+    {
+      path: '/user',
       name: 'user',
       component: () => import('@/features/user/User.vue'),
       children: [
         {
-          path: '/',
+          path: '/user',
           name: 'news',
           component: () => import('@/pages/News.vue'),
         },
         {
-          path: '/profile',
+          path: '/user/profile',
           name: 'profile',
           component: () => import('@/pages/Profile.vue'),
+        },
+        {
+          path: '/user/chatList',
+          name: 'chatList',
+          component: () => import('@/pages/ChatList.vue'),
+        },
+        {
+          path: '/user/chat:id',
+          name: 'chat',
+          component: () => import('@/features/user/Chat.vue'),
+        },
+        {
+          path: '/user/frends',
+          name: 'frends',
+          component: () => import('@/pages/Frends.vue'),
         }
       ]
     },
