@@ -1,22 +1,49 @@
 <script setup>
+import { ref, onMounted } from "vue";
+import axios from "axios";
+import { useRouter } from "vue-router";
+import SearchUsers from '@/features/user/SearchUsers.vue';
 
+const router = useRouter();
+const user = ref(null);
+const users = ref([]);
+const message = ref("");
+
+const fetchUsers = async () => {
+  try {
+    const res = await axios.get("http://localhost:3000/users");
+    users.value = res.data;
+  } catch (err) {
+    message.value = "Ошибка загрузки пользователей";
+  }
+};
+
+
+
+
+onMounted(() => {
+  fetchUsers();
+});
 </script>
 
 <template>
   <div class="frends">
     <h2 class="frends__title">Мои друзья</h2>
-    <div class="items">
-      <div class="item">
-        <div class="user">
-          <img class="user__img" src="@/assets/images/defolt-img.jpg" alt="">
+    <div v-for="u in users" :key="u.id" class="items">
+      <div class="item" >
+        <router-link :to="'/user/frend/' + u.id" class="user">
+          <img class="user__img" v-if="u.avatar" :src="'http://localhost:3000' + u.avatar" alt="Аватар">
           <div class="user-text">
-            <p class="user-text__name">Имя Фамилия</p>
-            <p class="user-text__login">@name</p>
+            <p class="user-text__name">{{ u.full_name }}</p>
+            <p class="user-text__login">@{{ u.username }}</p>
           </div>
-        </div>
+        </router-link>
         <button class="item__delit">Удалить</button>
       </div>
     </div>
+  </div>
+  <div class="search">
+    <SearchUsers/>
   </div>
 </template>
 

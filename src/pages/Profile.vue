@@ -1,8 +1,15 @@
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted, defineProps, defineEmits } from "vue";
+import axios from "axios";
+import { useRouter } from "vue-router";
 import CreatePost from "@/features/user/CreatePost.vue";
 import EditPost from "@/features/user/CreatePost.vue";
 import EditProfile from "@/features/user/EditProfile.vue";
+
+
+const router = useRouter();
+const user = ref(null);
+const message = ref("");
 
 const isCreatePostOpen = ref(false);
 const isEditPostOpen = ref(false);
@@ -15,12 +22,12 @@ const categories = ref([
   { id: 3, name: "Рисование" },
 ]);
 
-const user = ref({
-  name: "Иван",
-  login: "ivan123",
-  password: "pass123",
-  categories: ["Музыка", "Спорт"],
-});
+// const user = ref({
+//   name: "Иван",
+//   login: "ivan123",
+//   password: "pass123",
+//   categories: ["Музыка", "Спорт"],
+// });
 
 // const categories = ref(["Музыка", "Спорт", "Рисование", "Программирование"]);
 
@@ -63,21 +70,46 @@ const updatePost = (updatedPost) => {
   posts.value[updatedPost.index] = updatedPost;
   isEditPostOpen.value = false;
 };
+
+const fetchProfile = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/");
+      return;
+    }
+
+    const res = await axios.get("http://localhost:3000/profile", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    user.value = res.data;
+  } catch (err) {
+    message.value = "Ошибка загрузки профиля";
+    localStorage.removeItem("token");
+    router.push("/");
+  }
+};
+
+const logout = () => {
+  localStorage.removeItem("token");
+  router.push("/");
+};
+
+onMounted(fetchProfile);
 </script>
 
 <template>
   <div class="profile">
     <div class="blocks">
-      <div class="left">
-        <img class="avatar" src="@/assets/images/defolt-img.jpg" alt="">
+      <div v-if="user" class="left">
+        <img class="avatar" v-if="user.avatar" :src="'http://localhost:3000' + user.avatar" alt="Аватар">
         <div class="name">
-          <p class="name__full">Имя Фамилия</p>
-          <p class="name__login">@name</p>
+          <p class="name__full">{{ user.full_name }}</p>
+          <p class="name__login">@{{ user.username }}</p>
         </div>
         <div class="categories">
-          <div class="category">
-            <p>Спорт</p>
-          </div>
+          <p class="category">{{ user.category }}</p>
         </div>
         <button @click="isEditProfileOpen = true" class="setting">
           <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -96,13 +128,13 @@ const updatePost = (updatedPost) => {
       </div>
     </div>
 
-    <EditProfile 
+    <!-- <EditProfile 
   :isOpen="isEditProfileOpen" 
   :user="user" 
   :categories="categories" 
   @close="isEditProfileOpen = false" 
   @update="updateUser"
-/>
+/> -->
 
     <CreatePost 
       :isOpen="isCreatePostOpen" 
@@ -120,8 +152,7 @@ const updatePost = (updatedPost) => {
       @update="updatePost"
     />
 
-    <div v-if="posts.length">
-      <h3>Мои посты</h3>
+    <!-- <div v-if="posts.length">
       <div v-for="(post, index) in posts" :key="post.timestamp" class="post">
         <div class="post-header">
           <img :src="post.avatarUrl" class="avatar" alt="Аватар">
@@ -137,17 +168,17 @@ const updatePost = (updatedPost) => {
           <button @click="editPost(index)">Редактировать</button>
         </div>
       </div>
-    </div>
-
-    <div class="post">
-      <div class="user">
+    </div> -->
+<div v-if="posts.length">
+  <div  class="post" v-for="(post, index) in posts" :key="post.timestamp">
+      <div class="user" >
           <img class="user__avatar" src="@/assets/images/defolt-img.jpg" alt="Аватар">
           <div class="user__avatar"></div>
           <div class="user-info">
-              <p class="user-info__name">Анна Иванова</p>
-              <div class="user-info__category">Спорт</div>
+              <p class="user-info__name">{{ post.username }}</p>
+              <div style="width: 100px;" class="user-info__category">{{ post.category }}</div>
           </div>
-          <button class="user__redactor">
+          <button class="user__redactor" @click="editPost(index)">
             <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M24.6094 8.22845L19.7715 3.39053L2.78211 20.3798L7.62004 25.2178L24.6094 8.22845Z" stroke="white" stroke-width="2" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round" />
               <path d="M5.17933 22.8208L7.59278 25.2335L4.29607 26.1168L1 27.0001L1.88326 23.704L2.76653 20.4073L5.17933 22.8208Z" stroke="white" stroke-width="2" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round" />
@@ -155,15 +186,17 @@ const updatePost = (updatedPost) => {
             </svg>
           </button>
       </div>
-      <div class="post-content">
-          <p class="post-content__text">Plant Lovers! 🌱 As the one steering this green ship, I'm always
-              excited to hear from you. What's
-              something fun or surprising your plants have shown you? Tell us about the plant that's been your
-              greatest teacher or the one with the most personality in your home.</p>
-          <img class="post-content__img" src="@/assets/images/tenis-post.jpg"
+      <div v-if="posts.length">
+        <div v-for="post in posts" :key="post.timestamp" class="post-content">
+          <p class="post-content__text">{{ post.text }}</p>
+          <img class="post-content__img" v-if="post.imageUrl" :src="post.imageUrl"
               alt="Теннисные ракетки на корте">
       </div>
+      </div>
+      
   </div>
+</div>
+    
   
   </div>
   

@@ -1,100 +1,110 @@
-.vue
-vue
-Копировать
-Редактировать
 <template>
-  <div v-if="isOpen" class="modal-overlay">
-    <div class="modal">
+  <div class="modal">
+    <div class="modal-content">
       <h2>Редактировать профиль</h2>
-
-      <label>Имя:</label>
-      <input v-model="updatedName" type="text" placeholder="Введите имя">
+      <label>Полное имя:</label>
+      <input v-model="fullName" type="text" />
 
       <label>Логин:</label>
-      <input v-model="updatedLogin" type="text" placeholder="Введите новый логин">
+      <input v-model="username" type="text" />
 
-      <label>Изменить пароль:</label>
-      <input v-model="updatedPassword" type="password" placeholder="Введите новый пароль">
+      <label>Почта:</label>
+      <input v-model="email" type="email" />
 
-      <label>Добавить категорию:</label>
-      <select v-model="selectedCategory">
+      <label>Категории:</label>
+      <select v-model="selectedCategories" multiple>
         <option v-for="category in categories" :key="category.id" :value="category.name">
           {{ category.name }}
         </option>
       </select>
-      <button @click="addCategory">Добавить категорию</button>
 
-      <div class="selected-categories">
-        <span v-for="(category, index) in updatedCategories" :key="index" class="category-tag">
-          {{ category }}
-          <button @click="removeCategory(index)">x</button>
-        </span>
-      </div>
+      <label>Аватар:</label>
+      <input type="file" @change="handleAvatarUpload" />
+      <img v-if="previewAvatar" :src="previewAvatar" class="preview-avatar" />
 
-      <div class="buttons">
-        <button @click="saveProfile">Сохранить</button>
-        <button @click="closeModal">Отмена</button>
-      </div>
+      <button @click="updateProfile">Сохранить</button>
+      <button @click="$emit('close')">Отмена</button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, defineProps, defineEmits, watch } from "vue";
+import { ref, defineEmits, onMounted } from "vue";
+import axios from "axios";
 
-const props = defineProps({
-  isOpen: Boolean,
-  user: Object,
-  categories: Array,
-});
+const emit = defineEmits(["close", "profileUpdated"]);
 
-const emits = defineEmits(["close", "update"]);
+const fullName = ref("");
+const username = ref("");
+const email = ref("");
+const selectedCategories = ref([]);
+const avatar = ref(null);
+const previewAvatar = ref("");
+const categories = ref([]);
 
-const updatedName = ref("");
-const updatedLogin = ref("");
-const updatedPassword = ref("");
-const selectedCategory = ref("");
-const updatedCategories = ref([]);
-
-watch(
-  () => props.user,
-  (newUser) => {
-    if (newUser) {
-      updatedName.value = newUser.name;
-      updatedLogin.value = newUser.login;
-      updatedCategories.value = [...newUser.categories];
-    }
-  },
-  { deep: true, immediate: true }
-);
-
-const addCategory = () => {
-  if (selectedCategory.value && !updatedCategories.value.includes(selectedCategory.value)) {
-    updatedCategories.value.push(selectedCategory.value);
-    selectedCategory.value = "";
+const fetchCategories = async () => {
+  try {
+    const res = await axios.get("http://localhost:3000/categories");
+    categories.value = res.data;
+  } catch (error) {
+    console.error("Ошибка загрузки категорий", error);
   }
 };
 
-const removeCategory = (index) => {
-  updatedCategories.value.splice(index, 1);
+const fetchUserProfile = async () => {
+  const token = localStorage.getItem("token");
+  try {
+    const res = await axios.get("http://localhost:3000/user/profile", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    fullName.value = res.data.full_name;
+    username.value = res.data.username;
+    email.value = res.data.email;
+    selectedCategories.value = res.data.categories || [];
+    previewAvatar.value = res.data.avatar ? `http://localhost:3000${res.data.avatar}` : "";
+  } catch (error) {
+    console.error("Ошибка загрузки профиля", error);
+  }
 };
 
-const saveProfile = () => {
-  const updatedUser = {
-    ...props.user,
-    name: updatedName.value,
-    login: updatedLogin.value,
-    password: updatedPassword.value || props.user.password,
-    categories: updatedCategories.value,
-  };
-
-  emits("update", updatedUser);
-  closeModal();
+const handleAvatarUpload = (event) => {
+  const file = event.target.files[0];
+  if (file) {
+    avatar.value = file;
+    const reader = new FileReader();
+    reader.onload = (e) => (previewAvatar.value = e.target.result);
+    reader.readAsDataURL(file);
+  }
 };
 
-const closeModal = () => {
-  emits("close");
+const updateProfile = async () => {
+  const token = localStorage.getItem("token");
+  const formData = new FormData();
+  formData.append("full_name", fullName.value);
+  formData.append("username", username.value);
+  formData.append("email", email.value);
+  formData.append("categories", JSON.stringify(selectedCategories.value));
+  if (avatar.value) {
+    formData.append("avatar", avatar.value);
+  }
+
+  try {
+    await axios.put("http://localhost:3000/user/profile", formData, {
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" },
+    });
+
+    emit("profileUpdated");
+    emit("close");
+  } catch (error) {
+    console.error("Ошибка обновления профиля", error);
+  }
 };
+
+onMounted(() => {
+  fetchCategories();
+  fetchUserProfile();
+});
 </script>
 
 <style scoped>

@@ -35,7 +35,7 @@ const router = createRouter({
           component: () => import('@/pages/ChatList.vue'),
         },
         {
-          path: '/user/chat:id',
+          path: '/user/chat/:id',
           name: 'chat',
           component: () => import('@/features/user/Chat.vue'),
         },
@@ -43,6 +43,12 @@ const router = createRouter({
           path: '/user/frends',
           name: 'frends',
           component: () => import('@/pages/Frends.vue'),
+        },
+        {
+          path: '/user/frend/:id',
+          name: 'frend',
+          component: () => import('@/pages/FrendProfile.vue'),
+          props: true
         }
       ]
     },
