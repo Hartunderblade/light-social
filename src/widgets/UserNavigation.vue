@@ -1,15 +1,17 @@
 <script setup>
-import { RouterLink, RouterView } from 'vue-router'
+import { RouterLink, RouterView } from 'vue-router';
+
+
 </script>
 
 <template>
     <nav class="sidebar">
         <div class="content">
             <img class="content__logo" src="@/assets/images/logo-point.png" alt="">
-            <RouterLink to="/" ><img src="@/assets/images/icons/home.svg"></RouterLink>
-            <RouterLink to="/profile"><img src="@/assets/images/icons/profile.svg"></RouterLink>
-            <RouterLink><img src="@/assets/images/icons/message.svg"></RouterLink>
-            <RouterLink><img src="@/assets/images/icons/frends.svg"></RouterLink>
+            <RouterLink to="/user" ><img src="@/assets/images/icons/home.svg"></RouterLink>
+            <RouterLink to="/user/profile"><img src="@/assets/images/icons/profile.svg"></RouterLink>
+            <RouterLink to="/user/chatList"><img src="@/assets/images/icons/message.svg"></RouterLink>
+            <RouterLink to="/user/frends"><img src="@/assets/images/icons/frends.svg"></RouterLink>
         </div>
         <div class="content">
             <img class="content__settings" src="@/assets/images/icons/settings.svg">
