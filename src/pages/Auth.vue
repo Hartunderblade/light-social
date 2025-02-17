@@ -49,65 +49,6 @@ const errors = ref({
   consent: "",
 });
 
-// Валидация email
-const isValidEmail = computed(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value));
-
-// Валидация пароля (мин. 6 символов, буквы и цифры)
-const isValidPassword = computed(() => /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/.test(password.value));
-
-// Валидация всей формы перед отправкой
-const validateForm = () => {
-  let valid = true;
-  errors.value = {}; // Очистка ошибок перед проверкой
-
-  if (!full_name.value) {
-    errors.value.full_name = "Имя обязательно";
-    valid = false;
-  }
-
-  if (!username.value) {
-    errors.value.username = "Логин обязателен";
-    valid = false;
-  }
-
-  if (!email.value) {
-    errors.value.email = "Почта обязательна";
-    valid = false;
-  } else if (!isValidEmail.value) {
-    errors.value.email = "Неверный формат почты";
-    valid = false;
-  }
-
-  if (!category.value) {
-    errors.value.category = "Выберите категорию";
-    valid = false;
-  }
-
-  if (!password.value) {
-    errors.value.password = "Пароль обязателен";
-    valid = false;
-  } else if (!isValidPassword.value) {
-    errors.value.password = "Пароль должен содержать минимум 6 символов, включая буквы и цифры";
-    valid = false;
-  }
-
-//   if (!confirmPassword.value) {
-//     errors.value.confirmPassword = "Подтвердите пароль";
-//     valid = false;
-//   } else if (confirmPassword.value !== password.value) {
-//     errors.value.confirmPassword = "Пароли не совпадают";
-//     valid = false;
-//   }
-
-  if (!consent.value) {
-    errors.value.consent = "Необходимо согласие на обработку данных";
-    valid = false;
-  }
-
-  return valid;
-};
-
-
 const register = async () => {
     if (!validateForm()) return;
   if (!consent.value) {
@@ -228,13 +169,10 @@ onMounted(fetchCategories);
                                 <input class="auth__file" type="file" @change="handleFileUpload" />
                                 
                                 <input v-model="full_name" class="auth__input" type="text" placeholder="Имя" />
-                                <p class="error">{{ errors.full_name }}</p>
                             
                                 <input v-model="username" class="auth__input" type="text" placeholder="Логин" />
-                                <p class="error">{{ errors.username }}</p>
                             
                                 <input v-model="email" class="auth__input" type="email" placeholder="Почта" />
-                                <p class="error">{{ errors.email }}</p>
                             
                                 <select v-model="category" class="auth__input">
                                   <option disabled value="">Выберите категорию</option>
@@ -242,13 +180,10 @@ onMounted(fetchCategories);
                                     {{ category.name }}
                                   </option>
                                 </select>
-                                <p class="error">{{ errors.category }}</p>
                             
                                 <input v-model="password" class="auth__input" type="password" placeholder="Пароль" />
-                                <p class="error">{{ errors.password }}</p>
                             
                                 <input v-model="confirmPassword" class="auth__input" type="password" placeholder="Подтвердите пароль" />
-                                <p class="error">{{ errors.confirmPassword }}</p>
                             
                                 <label class="modal__checkbox">
                                   <input type="checkbox" v-model="consent" />
@@ -439,7 +374,6 @@ nav {
     left: 0;
     right: 0;
     top: 0;
-    bottom: 0;
     display: flex;
     justify-content: center;
     align-items: center;
