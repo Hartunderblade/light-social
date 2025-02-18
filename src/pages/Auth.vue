@@ -15,25 +15,6 @@ const openModal = (loginMode) => {
 const closeModal = () => {
     isModalOpen.value = false;
 };
-
-////////////////////////////////////
-
-
-const fullName  = ref("");
-const username = ref("");
-const email = ref("");
-const category = ref("");
-const confirmPassword = ref('');
-const password = ref("");
-const consent = ref(false);
-const avatar = ref(null);
-const message = ref("");
-
-const categories = ref([
-  { id: 1, name: "Спорт" },
-  { id: 2, name: "Музыка" },
-  { id: 3, name: "Рисование" },
-]);
 </script>
 
 <template>
@@ -77,19 +58,19 @@ const categories = ref([
                                 @click="isLogin = false">Регистрация</button>
                         </div>
                         <div v-if="isLogin">
-                            <form @submit.prevent="login">
-                            <input v-model="username" class="auth__input" type="text" placeholder="Логин" required />
-                            <input v-model="password" class="auth__input" type="password" placeholder="Пароль" required />
-                            <button class="auth__button">Войти</button>
-                            <p class="auth__text">
-                                У вас ещё нет аккаунта?
-                                <span class="auth__link" @click="isLogin = false">Зарегистрироваться</span>
-                            </p>
-                        </form>
+                            <form>
+                                <input v-model="username" class="auth__input" type="text" placeholder="Логин" required />
+                                <input v-model="password" class="auth__input" type="password" placeholder="Пароль" required />
+                                <button class="auth__button">Войти</button>
+                                <p class="auth__text">
+                                    У вас ещё нет аккаунта?
+                                    <span class="auth__link" @click="isLogin = false">Зарегистрироваться</span>
+                                </p>
+                            </form>
                         </div>
                         <div v-else>
-                            <form @submit.prevent="register">
-                                <input class="auth__file" type="file" @change="handleFileUpload" />
+                            <form>
+                                <input class="auth__file" type="file"/>
                                 
                                 <input v-model="fullName" class="auth__input" type="text" placeholder="Имя" />
                             
@@ -114,7 +95,6 @@ const categories = ref([
                                 </label>
                             
                                 <button type="submit" class="auth__button">Зарегистрироваться</button>
-                                <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
                                 <p class="auth__text"> Уже есть аккаунт? <span class="auth__link">Войти</span></p>
                               </form>
                         </div>
