@@ -6,110 +6,20 @@ import CreatePost from "@/features/user/CreatePost.vue";
 import EditPost from "@/features/user/CreatePost.vue";
 import EditProfile from "@/features/user/EditProfile.vue";
 
-
 const router = useRouter();
-const user = ref(null);
-const message = ref("");
-
-const isCreatePostOpen = ref(false);
-const isEditPostOpen = ref(false);
-const editablePost = ref(null);
-const posts = ref([]);
-
-const categories = ref([
-  { id: 1, name: "Спорт" },
-  { id: 2, name: "Музыка" },
-  { id: 3, name: "Рисование" },
-]);
-
-// const user = ref({
-//   name: "Иван",
-//   login: "ivan123",
-//   password: "pass123",
-//   categories: ["Музыка", "Спорт"],
-// });
-
-// const categories = ref(["Музыка", "Спорт", "Рисование", "Программирование"]);
-
-// const user = ref({
-//   username: "Иван Петров",
-//   avatarUrl: "https://i.pravatar.cc/100", // Заглушка аватара
-// });
-
-const isEditProfileOpen = ref(false);
-
-const updateUser = (updatedUser) => {
-  user.value = updatedUser;
-};
-
-const openCreatePost = () => {
-  isCreatePostOpen.value = true;
-};
-
-const addPost = (newPost) => {
-  if (newPost.image) {
-    newPost.imageUrl = URL.createObjectURL(newPost.image);
-  }
-
-  posts.value.unshift({
-    ...newPost,
-    username: user.value.username,
-    avatarUrl: user.value.avatarUrl,
-  });
-};
-
-const editPost = (index) => {
-  editablePost.value = { ...posts.value[index], index };
-  isEditPostOpen.value = true;
-};
-
-const updatePost = (updatedPost) => {
-  if (updatedPost.image) {
-    updatedPost.imageUrl = URL.createObjectURL(updatedPost.image);
-  }
-  posts.value[updatedPost.index] = updatedPost;
-  isEditPostOpen.value = false;
-};
-
-const fetchProfile = async () => {
-  try {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      router.push("/");
-      return;
-    }
-
-    const res = await axios.get("http://localhost:3000/profile", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    user.value = res.data;
-  } catch (err) {
-    message.value = "Ошибка загрузки профиля";
-    localStorage.removeItem("token");
-    router.push("/");
-  }
-};
-
-const logout = () => {
-  localStorage.removeItem("token");
-  router.push("/");
-};
-
-onMounted(fetchProfile);
 </script>
 
 <template>
   <div class="profile">
     <div class="blocks">
-      <div v-if="user" class="left">
-        <img class="avatar" v-if="user.avatar" :src="'http://localhost:3000' + user.avatar" alt="Аватар">
+      <div class="left">
+        <img class="avatar" src="" alt="Аватар">
         <div class="name">
-          <p class="name__full">{{ user.full_name }}</p>
-          <p class="name__login">@{{ user.username }}</p>
+          <p class="name__full">имя</p>
+          <p class="name__login">@имя</p>
         </div>
         <div class="categories">
-          <p class="category">{{ user.category }}</p>
+          <p class="category">категория</p>
         </div>
         <button @click="isEditProfileOpen = true" class="setting">
           <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -128,15 +38,7 @@ onMounted(fetchProfile);
       </div>
     </div>
 
-    <!-- <EditProfile 
-  :isOpen="isEditProfileOpen" 
-  :user="user" 
-  :categories="categories" 
-  @close="isEditProfileOpen = false" 
-  @update="updateUser"
-/> -->
-
-    <CreatePost 
+    <!-- <CreatePost 
       :isOpen="isCreatePostOpen" 
       :categories="categories"
       :user="user"
@@ -150,35 +52,17 @@ onMounted(fetchProfile);
       :categories="categories"
       @close="isEditPostOpen = false"
       @update="updatePost"
-    />
-
-    <!-- <div v-if="posts.length">
-      <div v-for="(post, index) in posts" :key="post.timestamp" class="post">
-        <div class="post-header">
-          <img :src="post.avatarUrl" class="avatar" alt="Аватар">
-          <div class="post-user-info">
-            <p class="username">{{ post.username }}</p>
-            <span class="category">{{ post.category }}</span>
-          </div>
-        </div>
-        <p class="post-text">{{ post.text }}</p>
-        <img v-if="post.imageUrl" :src="post.imageUrl" class="post-img" alt="Изображение поста">
-        
-        <div class="post-actions">
-          <button @click="editPost(index)">Редактировать</button>
-        </div>
-      </div>
-    </div> -->
-<div v-if="posts.length">
-  <div  class="post" v-for="(post, index) in posts" :key="post.timestamp">
+    /> -->
+<div>
+  <div  class="post">
       <div class="user" >
           <img class="user__avatar" src="@/assets/images/defolt-img.jpg" alt="Аватар">
           <div class="user__avatar"></div>
           <div class="user-info">
-              <p class="user-info__name">{{ post.username }}</p>
-              <div style="width: 100px;" class="user-info__category">{{ post.category }}</div>
+              <p class="user-info__name">Имя</p>
+              <div style="width: 100px;" class="user-info__category">Категория</div>
           </div>
-          <button class="user__redactor" @click="editPost(index)">
+          <button class="user__redactor">
             <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M24.6094 8.22845L19.7715 3.39053L2.78211 20.3798L7.62004 25.2178L24.6094 8.22845Z" stroke="white" stroke-width="2" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round" />
               <path d="M5.17933 22.8208L7.59278 25.2335L4.29607 26.1168L1 27.0001L1.88326 23.704L2.76653 20.4073L5.17933 22.8208Z" stroke="white" stroke-width="2" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round" />
@@ -186,10 +70,10 @@ onMounted(fetchProfile);
             </svg>
           </button>
       </div>
-      <div v-if="posts.length">
-        <div v-for="post in posts" :key="post.timestamp" class="post-content">
-          <p class="post-content__text">{{ post.text }}</p>
-          <img class="post-content__img" v-if="post.imageUrl" :src="post.imageUrl"
+      <div>
+        <div class="post-content">
+          <p class="post-content__text">еукст</p>
+          <img class="post-content__img" src=""
               alt="Теннисные ракетки на корте">
       </div>
       </div>

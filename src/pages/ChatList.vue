@@ -1,10 +1,6 @@
 <script setup>
 import { ref } from "vue";
-// import { useChatStore } from "@/store/chatStore.js";
 import Chat from '@/features/user/Chat.vue';
-
-// Получаем доступ к состоянию чатов
-// const { chats, selectChat } = useChatStore();
 </script>
 
 <template>

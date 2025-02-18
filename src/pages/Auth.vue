@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch  } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
 const isLogin = ref(true);
@@ -19,98 +19,21 @@ const closeModal = () => {
 ////////////////////////////////////
 
 
-const full_name = ref("");
+const fullName  = ref("");
 const username = ref("");
 const email = ref("");
 const category = ref("");
-const categories = ref([]);
+const confirmPassword = ref('');
 const password = ref("");
 const consent = ref(false);
 const avatar = ref(null);
 const message = ref("");
 
-// const categories = ref([
-//   { id: 1, name: "Спорт" },
-//   { id: 2, name: "Музыка" },
-//   { id: 3, name: "Рисование" },
-// ]);
-
-const handleFileUpload = (event) => {
-  avatar.value = event.target.files[0];
-};
-
-const errors = ref({
-  full_name: "",
-  username: "",
-  email: "",
-  category: "",
-  password: "",
-  confirmPassword: "",
-  consent: "",
-});
-
-const register = async () => {
-    if (!validateForm()) return;
-  if (!consent.value) {
-    message.value = "Вы должны согласиться с обработкой данных.";
-    return;
-  }
-
-  const formData = new FormData();
-  formData.append("full_name", full_name.value);
-  formData.append("username", username.value);
-  formData.append("email", email.value);
-  formData.append("category", category.value);
-  formData.append("password", password.value);
-  formData.append("consent", consent.value);
-  if (avatar.value) {
-    formData.append("avatar", avatar.value);
-  }
-
-  try {
-    const res = await axios.post("http://localhost:3000/register", formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-
-    message.value = res.data.message;
-  } catch (err) {
-    message.value = err.response?.data?.message || "Ошибка регистрации";
-  }
-};
-
-
-const login = async () => {
-  try {
-    const res = await axios.post("http://localhost:3000/login", {
-      username: username.value,
-      password: password.value,
-    });
-
-    localStorage.setItem("token", res.data.token);
-    localStorage.setItem("role", res.data.role);
-
-    if (res.data.role === "admin") {
-      router.push("/admin");
-    } else {
-      router.push("/user/profile");
-    }
-  } catch (err) {
-    message.value = err.response?.data?.message || "Ошибка входа";
-  }
-};
-
-const fetchCategories = async () => {
-  try {
-    const res = await axios.get("http://localhost:3000/categories");
-    categories.value = res.data;
-  } catch (err) {
-    console.error("Ошибка загрузки категорий");
-  }
-};
-
-onMounted(fetchCategories);
-
-
+const categories = ref([
+  { id: 1, name: "Спорт" },
+  { id: 2, name: "Музыка" },
+  { id: 3, name: "Рисование" },
+]);
 </script>
 
 <template>
@@ -131,7 +54,7 @@ onMounted(fetchCategories);
                         <h1 class="text__title">Здравствуйте!</h1>
                         <p class="text__subtitle">Регистрируйтесь в нашей социальной сети и приглашайте друзей. Делитесь
                             яркими впечатлениями и делайте этот мир ярче</p>
-                        <button class="text__button">Зарегистрироваться</button>
+                        <button @click="openModal(false)" class="text__button">Зарегистрироваться</button>
                     </div>
                     <div class="point">
                         <img class="point__img" src="@/assets/images/logo-point.png" />
@@ -147,7 +70,7 @@ onMounted(fetchCategories);
                           </svg></button>
                         <img class="auth__box-logo" src="@/assets/images/icons/logo.svg" alt="Light">
                         <p class="auth__box-subtitle">Социальная сеть</p>
-                        <div style="margin: 2.8rem; display: flex; justify-content:space-around;" class="auth__tabs">
+                        <div class="auth__tabs">
                             <button :class="['auth__tab', { 'auth__tab--active': isLogin }]"
                                 @click="isLogin = true">Вход</button>
                             <button :class="['auth__tab', { 'auth__tab--active': !isLogin }]"
@@ -168,7 +91,7 @@ onMounted(fetchCategories);
                             <form @submit.prevent="register">
                                 <input class="auth__file" type="file" @change="handleFileUpload" />
                                 
-                                <input v-model="full_name" class="auth__input" type="text" placeholder="Имя" />
+                                <input v-model="fullName" class="auth__input" type="text" placeholder="Имя" />
                             
                                 <input v-model="username" class="auth__input" type="text" placeholder="Логин" />
                             
@@ -189,10 +112,9 @@ onMounted(fetchCategories);
                                   <input type="checkbox" v-model="consent" />
                                   Согласен на обработку персональных данных
                                 </label>
-                                <p class="error">{{ errors.consent }}</p>
                             
                                 <button type="submit" class="auth__button">Зарегистрироваться</button>
-                                <p>{{ message }}</p>
+                                <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
                                 <p class="auth__text"> Уже есть аккаунт? <span class="auth__link">Войти</span></p>
                               </form>
                         </div>
@@ -214,10 +136,10 @@ onMounted(fetchCategories);
     background-repeat: no-repeat;
     background-size: cover;
     height: 100vh;
-    background: rgba(36, 36, 36, 0.8);
-    // position: absolute;
-    // left:0;
-    // right:0;
+    background-color: rgba(36, 36, 36, 0.758);
+    position: absolute;
+    left:0;
+    right:0;
 }
 
 header {}
@@ -230,14 +152,13 @@ nav {
 }
 
 .modal {
-    background: #222;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    display: flex;
+    
 }
 
 .modal__close {
     position: absolute;
-    right: 720px;
+    right: 40px;
+    top: 40px;
 }
 
 .buttons {
@@ -370,23 +291,28 @@ nav {
 
 
 .auth {
-    position: absolute;
+    position: ab;
     left: 0;
     right: 0;
-    top: 0;
+    //top: 0;
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: #181818;
+    //background-color: #181818;
+    margin: 100px 0;
+    position: relative;
 
 
     &__box {
         background: #222;
         padding: 2rem;
-        border-radius: 10px;
         text-align: center;
         color: #fff;
         box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+border-radius: 44px;
+backdrop-filter: blur(569px);
+background-color: rgba(30, 30, 30, 0.1);
 
         &-logo {
             width: 162px;
@@ -402,13 +328,14 @@ nav {
 
     &__tabs {
         display: flex;
-        //justify-content: center;
+        justify-content:space-around;
         align-items: center;
-        //margin: 1rem 0;
+        margin: 1.6rem 0;
         border: 1px solid #ffff;
         width: 400px;
         height: 48px;
         border-radius: 12px;
+        //position: relative;
 
     }
 
@@ -417,19 +344,23 @@ nav {
         font-weight: 500;
         font-size: 18px;
         line-height: 125%;
+        padding: 0 38px;
+        width: 200px;
         //border: 1px solid #fff;
         color: #fff;
         //padding: 0.5rem 1rem;
-        margin: 0 5px;
+        //margin: 0 5px;
         cursor: pointer;
-        border-radius: 5px;
+        //border-radius: 5px;
         transition: 0.3s;
+        
+        
 
         &--active {
             border: 1px solid #fff;
             border-radius: 14px;
-            padding: 12px 38px;
-            width: 200px;
+            //padding: 0 38px;
+            //width: 200px;
             height: 48px;
             border-radius: 12px;
         }
