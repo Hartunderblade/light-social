@@ -24,6 +24,42 @@
                         alt="Теннисные ракетки на корте">
                 </div>
             </div>
+          <div class="post">
+            <div class="profile">
+              <!-- <img src="profile.jpg" alt="Аватар"> -->
+              <div class="profile__avatar"></div>
+              <div class="profile-info">
+                <p class="profile-info__name">Анна Иванова</p>
+                <div class="profile-info__category">Спорт</div>
+              </div>
+            </div>
+            <div class="post-content">
+              <p class="post-content__text">Plant Lovers! 🌱 As the one steering this green ship, I'm always
+                excited to hear from you. What's
+                something fun or surprising your plants have shown you? Tell us about the plant that's been your
+                greatest teacher or the one with the most personality in your home.</p>
+              <img class="post-content__img" src="@/assets/images/tenis-post.jpg"
+                   alt="Теннисные ракетки на корте">
+            </div>
+          </div>
+          <div class="post">
+            <div class="profile">
+              <!-- <img src="profile.jpg" alt="Аватар"> -->
+              <div class="profile__avatar"></div>
+              <div class="profile-info">
+                <p class="profile-info__name">Анна Иванова</p>
+                <div class="profile-info__category">Спорт</div>
+              </div>
+            </div>
+            <div class="post-content">
+              <p class="post-content__text">Plant Lovers! 🌱 As the one steering this green ship, I'm always
+                excited to hear from you. What's
+                something fun or surprising your plants have shown you? Tell us about the plant that's been your
+                greatest teacher or the one with the most personality in your home.</p>
+              <img class="post-content__img" src="@/assets/images/tenis-post.jpg"
+                   alt="Теннисные ракетки на корте">
+            </div>
+          </div>
         </div>
     </div>
 </template>
@@ -48,6 +84,7 @@
 }
 
 .post {
+  margin-top: 4rem;
     &-content {
         &__text {
             font-weight: 400;
@@ -104,6 +141,7 @@
         border-radius: 16px;
         padding: 12px;
         width: 297px;
+      margin: 4rem 0;
 
         &__title {
             margin-bottom: 28px;

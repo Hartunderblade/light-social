@@ -8,25 +8,25 @@ import { useRouter } from "vue-router";
 const router = useRouter();
 const user = ref(null);
 
-const fetchProfile = async () => {
-  try {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      router.push("/");
-      return;
-    }
+// const fetchProfile = async () => {
+//   try {
+//     const token = localStorage.getItem("token");
+//     if (!token) {
+//       router.push("/");
+//       return;
+//     }
 
-    const res = await axios.get("http://localhost:3000/profile", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+//     const res = await axios.get("http://localhost:3000/profile", {
+//       headers: { Authorization: `Bearer ${token}` },
+//     });
 
-    user.value = res.data;
-  } catch (err) {
-    message.value = "Ошибка загрузки профиля";
-    localStorage.removeItem("token");
-    router.push("/");
-  }
-};
+//     user.value = res.data;
+//   } catch (err) {
+//     message.value = "Ошибка загрузки профиля";
+//     localStorage.removeItem("token");
+//     router.push("/");
+//   }
+// };
 
 
 
@@ -37,7 +37,7 @@ const logout = () => {
   router.push("/");
 };
 
-onMounted(fetchProfile);
+// onMounted(fetchProfile);
 </script>
 
 <template>
