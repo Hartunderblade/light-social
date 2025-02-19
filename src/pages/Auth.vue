@@ -51,12 +51,6 @@ const closeModal = () => {
                           </svg></button>
                         <img class="auth__box-logo" src="@/assets/images/icons/logo.svg" alt="Light">
                         <p class="auth__box-subtitle">Социальная сеть</p>
-                        <div class="auth__tabs">
-                            <button :class="['auth__tab', { 'auth__tab--active': isLogin }]"
-                                @click="isLogin = true">Вход</button>
-                            <button :class="['auth__tab', { 'auth__tab--active': !isLogin }]"
-                                @click="isLogin = false">Регистрация</button>
-                        </div>
                         <div v-if="isLogin">
                             <form>
                                 <input v-model="username" class="auth__input" type="text" placeholder="Логин" required />
@@ -64,7 +58,7 @@ const closeModal = () => {
                                 <button class="auth__button">Войти</button>
                                 <p class="auth__text">
                                     У вас ещё нет аккаунта?
-                                    <span class="auth__link" @click="isLogin = false">Зарегистрироваться</span>
+                                    <button class="auth__link" @click="isLogin = false">Зарегистрироваться</button>
                                 </p>
                             </form>
                         </div>
@@ -91,11 +85,11 @@ const closeModal = () => {
                             
                                 <label class="modal__checkbox">
                                   <input type="checkbox" v-model="consent" />
-                                  Согласен на обработку персональных данных
+                                  <p>Согласен на обработку персональных данных</p>
                                 </label>
                             
                                 <button type="submit" class="auth__button">Зарегистрироваться</button>
-                                <p class="auth__text"> Уже есть аккаунт? <span class="auth__link">Войти</span></p>
+                                <p class="auth__text"> Уже есть аккаунт? <button @click="isLogin = true" class="auth__link">Войти</button></p>
                               </form>
                         </div>
                     </div>
@@ -125,10 +119,6 @@ nav {
     justify-content: space-between;
     align-items: center;
     padding: 2rem 0;
-}
-
-.modal {
-    
 }
 
 .modal__close {
@@ -211,73 +201,17 @@ nav {
     margin-bottom: 1rem;
 }
 
-@media (max-width: 320px) {
-    nav {
-        padding: 1rem 0;
-    }
 
-    .logo {
-        width: 90px;
-        height: 22px;
-    }
-
-    .button {
-        font-size: 12px;
-    }
-
-    .login {
-        padding: 10px 14px;
-    }
-
-    .info {
-        display: block;
-
-    }
-
-    .point {
-        display: none;
-    }
-
-    .text {
-        margin-top: 83px;
-        text-align: center;
-        z-index: 1;
-        // width:274px;
-        // margin: 0 auto;
-
-        &__title {
-            font-size: 22px;
-        }
-
-        &__subtitle {
-            align-items: center;
-            max-width: 100%;
-            font-size: 1rem;
-            margin-top: 1rem;
-        }
-
-        &__button {
-            font-size: 1rem;
-            border-radius: 10px;
-            padding: 16px 53px;
-            margin-top: 20px;
-        }
-    }
-}
 
 
 .auth {
-    position: ab;
+    position: absolute;
     left: 0;
     right: 0;
-    //top: 0;
     display: flex;
     justify-content: center;
     align-items: center;
-    //background-color: #181818;
     margin: 100px 0;
-    position: relative;
-
 
     &__box {
         background: #222;
@@ -286,9 +220,9 @@ nav {
         color: #fff;
         box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
         border: 1px solid rgba(255, 255, 255, 0.2);
-border-radius: 44px;
-backdrop-filter: blur(569px);
-background-color: rgba(30, 30, 30, 0.1);
+        border-radius: 44px;
+        backdrop-filter: blur(569px);
+        background-color: rgba(30, 30, 30, 0.1);
 
         &-logo {
             width: 162px;
@@ -405,7 +339,6 @@ background-color: rgba(30, 30, 30, 0.1);
 form {
     display: flex;
     flex-direction: column;
-
 }
 
 .error-message {
@@ -428,4 +361,164 @@ form {
         opacity: 1;
     }
 }
+
+
+@media (max-width: 320px) {
+  nav {
+    padding: 1rem 0;
+  }
+
+  .logo {
+    width: 90px;
+    height: 22px;
+  }
+
+  .button {
+    font-size: 12px;
+  }
+
+  .login {
+    padding: 10px 14px;
+  }
+
+  .info {
+    display: block;
+
+  }
+
+  .point {
+    display: none;
+  }
+
+  .text {
+    margin-top: 83px;
+    text-align: center;
+    z-index: 1;
+
+    &__title {
+      font-size: 22px;
+    }
+
+    &__subtitle {
+      align-items: center;
+      max-width: 100%;
+      font-size: 1rem;
+      margin-top: 1rem;
+    }
+
+    &__button {
+      font-size: 1rem;
+      border-radius: 10px;
+      padding: 16px 53px;
+      margin-top: 20px;
+    }
+  }
+
+
+  // forms
+
+  .auth {
+    position: initial;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    //margin: 0 0;
+    width: 100%;
+    height: 100%;
+    background-color: #2b2b2b;
+
+    &__box {
+      padding: 0;
+      text-align: center;
+      color: #fff;
+      box-shadow: none;
+      border: none;
+      border-radius: 0;
+      backdrop-filter: none;
+      height: 100%;
+      width: 296px;
+      margin: 0 auto;
+
+      &-logo {
+        width: 119px;
+        height: 29px;
+      }
+
+      &-subtitle {
+        font-size: 16px;
+      }
+    }
+
+    &__input {
+      margin: 6px 0;
+      border: 1px solid #fff;
+      border-radius: 10px;
+      padding: 18px 0 18px 16px;
+      width: 296px;
+      height: 56px;
+      font-size: 1rem;
+
+      &::placeholder {
+        font-size: 1rem;
+      }
+    }
+
+    &__button {
+      font-size: 1rem;
+      border: 1px solid #fff;
+      border-radius: 14px;
+      padding: 1rem 0;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.1);
+      margin-top: 0.6rem;
+    }
+
+    &__text {
+      margin-top: 0.8rem;
+    }
+
+    &__preview {
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    &__preview-img {
+      max-width: 100px;
+      max-height: 100px;
+      border-radius: 50%;
+    }
+  }
+
+  .modal__close {
+    position: absolute;
+    right: 14px;
+    top: 2rem;
+  }
+
+  form {
+    margin-top: 1.4rem;
+    margin-bottom: 1.4rem;
+    align-items: center;
+  }
+
+  .auth__file {
+    width: 78px;
+    height: 78px;
+    margin-left: 0;
+    margin-bottom: 1rem;
+  }
+
+  .modal__checkbox {
+    display: flex;
+    align-items: center;
+    column-gap: 0.4rem;
+    margin-top: 0.8rem;
+    margin-bottom: 0.6rem;
+    p {
+      font-size: 0.8rem;
+    }
+  }
+}
+
+
 </style>

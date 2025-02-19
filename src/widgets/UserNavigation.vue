@@ -61,16 +61,20 @@ import { RouterLink, RouterView } from 'vue-router';
 
 @media (max-width: 320px) {
     .sidebar {
-        display: flex;
-        justify-content:space-between ;
-        //flex-direction:row;
-        border-radius: 16px;
-        padding: 12px 52px;
-        width: 296px;
-        height: 50px;
-    
-        position: absolute;
-        bottom: 0;
+      position: fixed;
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+      column-gap: 28px;
+      border-radius: 16px;
+      padding: 6px 35px;
+      width: 296px;
+      height: 54px;
+
+      bottom: 1rem;
+
+      margin-top: 0;
     }
 
     .content {
@@ -90,13 +94,18 @@ import { RouterLink, RouterView } from 'vue-router';
         }
     
         &__settings {
-            display: none;
             margin-top: 0;
         }
     }
 
     .content__logo {
-        display: none;
+        //display: none;
+      margin-bottom: 0;
+      position: fixed;
+      top: 1rem;
+      left: 12px;
+      width: 40px;
+      height: 28px;
     }
 }
 </style>
