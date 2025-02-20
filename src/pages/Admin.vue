@@ -1,13 +1,74 @@
 <script setup>
-import AdminNavigation from '@/widgets/AdminNavigation.vue';
-
 import { ref, onMounted } from "vue";
+import AdminNavigation from '@/widgets/AdminNavigation.vue';
 import axios from "axios";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
+
 const categories = ref([]);
-const message = ref("");
+const newCategory = ref("");
+const errorMessage = ref("");
+
+const editingCategory = ref(null);
+const editedCategoryName = ref("");
+
+
+const fetchCategories = async () => {
+  try {
+    const response = await axios.get("http://localhost:3000/api/categories");
+    categories.value = response.data;
+  } catch (error) {
+    errorMessage.value = "Ошибка загрузки категорий";
+  }
+};
+
+const addCategory = async () => {
+  try {
+    await axios.post("http://localhost:3000/api/categories", {
+      name: newCategory.value,
+    });
+    newCategory.value = "";
+    fetchCategories();
+  } catch (error) {
+    errorMessage.value = "Ошибка добавления категории";
+  }
+};
+
+const startEditing = (category) => {
+  editingCategory.value = category.id;
+  editedCategoryName.value = category.name;
+};
+
+const cancelEditing = () => {
+  editingCategory.value = null;
+  editedCategoryName.value = "";
+};
+
+const updateCategory = async (id) => {
+  try {
+    await axios.put(`http://localhost:3000/api/categories/${id}`, {
+      name: editedCategoryName.value,
+    });
+    cancelEditing();
+    fetchCategories();
+  } catch (error) {
+    errorMessage.value = "Ошибка обновления категории";
+  }
+};
+
+const deleteCategory = async (id) => {
+  if (!confirm("Вы уверены, что хотите удалить категорию?")) return;
+
+  try {
+    await axios.delete(`http://localhost:3000/api/categories/${id}`);
+    fetchCategories();
+  } catch (error) {
+    errorMessage.value = "Ошибка удаления категории";
+  }
+};
+
+onMounted(fetchCategories);
 </script>
 
 <template>
@@ -16,22 +77,36 @@ const message = ref("");
     <div class="admin">
       <h2 class="admin__title">Админ панель</h2>
       <div class="content">
-        <input class="content__input" type="text" placeholder="Добавить категорию">
-        <button class="content__add">Добавить</button>
+        <input v-model="newCategory" class="content__input" type="text" placeholder="Добавить категорию">
+        <button @click="addCategory" class="content__add">Добавить</button>
+
+        <p v-if="errorMessage">{{ errorMessage }}</p>
+        
         <div class="categoryes">
-          <div class="category">
-            <div class="category-count">
-              <span class="category-count__number">1</span>
-              <p class="category-count__category">категория</p>
+          <div class="category" v-for="category in categories" :key="category.id">
+            <template v-if="editingCategory === category.id">
+              <input style="background-color: #222; color: #ffff; border: none; outline: none;" v-model="editedCategoryName" />
+              <button @click="updateCategory(category.id)"><svg width="14" height="12" viewBox="0 0 14 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M1 7.6261L2.60619 9.34779C3.49194 10.2972 3.93481 10.772 4.43113 10.9218C4.86704 11.0534 5.33047 11.0181 5.74589 10.8217C6.21888 10.598 6.59854 10.0606 7.35787 8.98586L13 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+              </svg></button>
+              <button @click="cancelEditing"><svg width="10" height="12" viewBox="0 0 10 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M1 1L8.5 11M1 11L8.5 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+              </svg></button>
+            </template>
+            <template v-else>
+              <div class="category-count">
+                <span class="category-count__number">{{ category.id }}</span>
+                <p class="category-count__category">{{ category.name }}</p>
             </div>
-            <div class="category-icons">
-              <button>
-                <img src="@/assets/images/icons/edit.svg" alt="Редактировать категорию" />
-              </button>
-              <button>
-                <img src="@/assets/images/icons/delit.svg" alt="Удалить категорию" />
-              </button>
-            </div>
+              <div class="category-icons">
+                <button  @click="startEditing(category)">
+                  <img src="@/assets/images/icons/edit.svg" alt="Редактировать категорию" />
+                </button>
+                <button @click="deleteCategory(category.id)">
+                  <img src="@/assets/images/icons/delit.svg" alt="Удалить категорию" />
+                </button>
+              </div>
+            </template>
           </div>
         </div>
       </div>
@@ -75,7 +150,6 @@ const message = ref("");
   padding: 32px;
   width: 100%;
   max-width: 1319px;
-  height: 412px;
   background-color: #222;
   margin-top: 80px;
   &__title {

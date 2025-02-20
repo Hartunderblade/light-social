@@ -7,6 +7,10 @@ const isModalOpen = ref(false);
 
 const router = useRouter();
 
+const username = ref("");
+const password = ref("");
+const errorMessage = ref("");
+
 const openModal = (loginMode) => {
     isLogin.value = loginMode;
     isModalOpen.value = true;
@@ -15,6 +19,21 @@ const openModal = (loginMode) => {
 const closeModal = () => {
     isModalOpen.value = false;
 };
+
+const login = async () => {
+  try {
+    const response = await axios.post("http://localhost:3000/login", {
+      username: username.value,
+      password: password.value,
+    });
+    localStorage.setItem("token", response.data.token);
+    router.push('/admin');
+  } catch (error) {
+    errorMessage.value = "Ошибка авторизации";
+  }
+};
+
+
 </script>
 
 <template>
@@ -52,7 +71,7 @@ const closeModal = () => {
                         <img class="auth__box-logo" src="@/assets/images/icons/logo.svg" alt="Light">
                         <p class="auth__box-subtitle">Социальная сеть</p>
                         <div v-if="isLogin">
-                            <form>
+                            <form @submit.prevent="login">
                                 <input v-model="username" class="auth__input" type="text" placeholder="Логин" required />
                                 <input v-model="password" class="auth__input" type="password" placeholder="Пароль" required />
                                 <button class="auth__button">Войти</button>
@@ -60,6 +79,7 @@ const closeModal = () => {
                                     У вас ещё нет аккаунта?
                                     <button class="auth__link" @click="isLogin = false">Зарегистрироваться</button>
                                 </p>
+                                <p v-if="errorMessage">{{ errorMessage }}</p>
                             </form>
                         </div>
                         <div v-else>
