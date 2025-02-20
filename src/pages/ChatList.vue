@@ -1,10 +1,6 @@
 <script setup>
 import { ref } from "vue";
-// import { useChatStore } from "@/store/chatStore.js";
 import Chat from '@/features/user/Chat.vue';
-
-// Получаем доступ к состоянию чатов
-// const { chats, selectChat } = useChatStore();
 </script>
 
 <template>
@@ -32,7 +28,8 @@ import Chat from '@/features/user/Chat.vue';
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
   padding: 32px;
-  width: 1319px;
+  max-width: 1319px;
+  width: 100%;
   margin-top: 20px;
 
   &__title {
@@ -56,18 +53,18 @@ import Chat from '@/features/user/Chat.vue';
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid rgba(255, 255, 255, 0.4);
-padding: 0px 0px 1rem 0px;
+  padding: 0px 0px 1rem 0px;
 
 &__message {
   font-weight: 500;
-font-size: 18px;
-line-height: 111%;
-letter-spacing: -0.01em;
-background: rgba(255, 255, 255, 0.1);
-border: 1px solid #327ce2;
-border-radius: 16px;
-padding: 12px 48px;
-}
+  font-size: 18px;
+  line-height: 111%;
+  letter-spacing: -0.01em;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid #327ce2;
+  border-radius: 16px;
+  padding: 12px 48px;
+  }
 }
 
 .user {
@@ -84,12 +81,64 @@ padding: 12px 48px;
   &-text {
     &__name {
       font-weight: 500;
-font-size: 20px;
+      font-size: 20px;
     }
 
     &__login {
       font-weight: 400;
-font-size: 1rem;
+      font-size: 1rem;
+    }
+  }
+}
+
+
+@media (max-width: 320px) {
+  .chat-list {
+    padding: 12px;
+    width: 300px;
+    margin-top: 82px;
+
+    &__title {
+      font-size: 20px;
+    }
+  }
+
+  .items {
+    display: flex;
+    flex-direction: column;
+    row-gap: 1rem;
+    margin-top: 2rem;
+  }
+
+  .item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+    padding: 0px 0px 0.6rem 0px;
+
+    &__message {
+      font-size: 10px;
+      padding: 6px 16px;
+    }
+  }
+
+  .user {
+    column-gap: 24px;
+
+    &__img {
+      width: 48px;
+      height: 48px;
+    }
+
+    &-text {
+      &__name {
+        font-size: 1rem;
+      }
+
+      &__login {
+        font-size: 0.8rem;
+      }
     }
   }
 }
