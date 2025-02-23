@@ -7,19 +7,41 @@ import EditPost from "@/features/user/CreatePost.vue";
 import EditProfile from "@/features/user/EditProfile.vue";
 
 const router = useRouter();
+const user = ref(null);
+const errorMessage = ref("");
+
+const fetchUserData = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+
+    const response = await axios.get("http://localhost:3000/profile", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    user.value = response.data;
+  } catch (error) {
+    errorMessage.value = "Ошибка загрузки данных профиля";
+  }
+};
+
+onMounted(fetchUserData);
 </script>
 
 <template>
-  <div class="profile">
+  <div v-if="user" class="profile">
     <div class="blocks">
       <div class="left">
-        <img class="avatar" src="@/assets/images/defolt-img.jpg" alt="Аватар">
+        <img :src="user.avatar" alt="Аватар" v-if="user.avatar" class="avatar" >
         <div class="name">
-          <p class="name__full">имя</p>
-          <p class="name__login">@имя</p>
+          <p class="name__full">{{ user.full_name }}</p>
+          <p class="name__login">@{{ user.login }}</p>
         </div>
         <div class="categories">
-          <p class="category">категория</p>
+          <p class="category">{{ user.category }}</p>
 
         </div>
 <!--        <button @click="isEditProfileOpen = true" class="setting">-->
