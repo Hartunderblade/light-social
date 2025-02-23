@@ -1,10 +1,11 @@
 require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
+const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { Pool } = require('pg');
-const cors = require('cors');
+const multer = require('multer');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -18,56 +19,168 @@ const pool = new Pool({
     port: process.env.DB_PORT,
 });
 
+// const JWT_SECRET = process.env.JWT_SECRET;
+app.use("/uploads", express.static("uploads"));
 // Настройка CORS
 app.use(cors());
 app.use(bodyParser.json());
+app.use(express.json());
 
-// Регистрация пользователя
-app.post('/register', async (req, res) => {
-    const { name, email, password, confirmPassword } = req.body;
 
-    if (password !== confirmPassword) {
-        return res.status(400).json({ error: 'Пароли не совпадают' });
-    }
+// Функция для генерации токена
+const generateToken = (userId) => {
+  return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: "7d" });
+};
 
-    try {
-        const hashedPassword = await bcrypt.hash(password, 8);
-        const result = await pool.query(
-            'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING *',
-            [name, email, hashedPassword]
-        );
-        res.json({ message: 'Регистрация прошла успешно!', user: result.rows[0] });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Ошибка регистрации' });
-    }
+const authMiddleware = (req, res, next) => {
+  const token = req.header("Authorization")?.replace("Bearer ", "");
+  if (!token) {
+    return res.status(401).json({ message: "Нет доступа" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.userId = decoded.userId;
+    next();
+  } catch (error) {
+    return res.status(401).json({ message: "Неверный токен" });
+  }
+};
+
+// Настройка загрузки файлов
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/");
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + "-" + file.originalname);
+  },
+});
+const upload = multer({ storage });
+
+app.post("/register", upload.single("fileAvatar"), async (req, res) => {
+  const { fullName, login, email, category, password, confirmPassword, consent } = req.body;
+
+  if (!fullName || !login || !email || !category || !password || !confirmPassword || !consent) {
+    return res.status(400).json({ message: "Все поля обязательны" });
+  }
+
+  if (password !== confirmPassword) {
+    return res.status(400).json({ message: "Пароли не совпадают" });
+  }
+
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const avatarPath = req.file ? `/uploads/${req.file.filename}` : null; 
+
+    const newUser = await pool.query(
+      "INSERT INTO users (avatar, full_name, login, email, category, password) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id",
+      [avatarPath, fullName, login, email, category, hashedPassword]
+    );
+
+    const token = generateToken(newUser.rows[0].id);
+
+    res.json({ message: "Регистрация успешна", token });
+  } catch (error) {
+    res.status(500).json({ message: "Ошибка сервера" });
+  }
 });
 
-// Вход пользователя
-app.post('/login', async (req, res) => {
-    const { email, password } = req.body;
+app.post("/login", async (req, res) => {
+  const { login, password } = req.body;
 
-    try {
-        const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Пользователь не найден' });
-        }
+  if (!login || !password) {
+    return res.status(400).json({ message: "Введите логин и пароль" });
+  }
 
-        const user = result.rows[0];
-        const isPasswordValid = await bcrypt.compare(password, user.password);
-        if (!isPasswordValid) {
-            return res.status(401).json({ error: 'Неверный пароль' });
-        }
+  try {
+    const user = await pool.query("SELECT * FROM users WHERE login = $1", [login]);
 
-        const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '1h' });
-        res.json({ token });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Ошибка входа' });
+    if (user.rows.length === 0) {
+      return res.status(400).json({ message: "Пользователь не найден" });
     }
+
+    const isMatch = await bcrypt.compare(password, user.rows[0].password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Неверный пароль" });
+    }
+
+    const token = generateToken(user.rows[0].id);
+    res.json({ message: "Вход успешен", token });
+  } catch (error) {
+    res.status(500).json({ message: "Ошибка сервера" });
+  }
 });
 
-// Запуск сервера
+app.get("/profile", authMiddleware, async (req, res) => {
+  try {
+    const user = await pool.query("SELECT * FROM users WHERE id = $1", [req.userId]);
+    if (user.rows.length === 0) {
+      return res.status(404).json({ message: "Пользователь не найден" });
+    }
+
+    const userData = user.rows[0];
+    if (userData.avatar) {
+      userData.avatar = `http://localhost:3000${userData.avatar}`; // Добавляем полный URL
+    }
+
+    res.json(userData);
+  } catch (error) {
+    res.status(500).json({ message: "Ошибка сервера" });
+  }
+});
+
+// Получение всех категорий
+app.get("/api/categories", async (req, res) => {
+    try {
+      const result = await pool.query("SELECT * FROM categories");
+      res.json(result.rows);
+    } catch (error) {
+      res.status(500).json({ message: "Ошибка сервера" });
+    }
+  });
+  
+  // Добавление категории
+  app.post("/api/categories", async (req, res) => {
+    const { name } = req.body;
+    if (!name) return res.status(400).json({ message: "Название обязательно" });
+  
+    try {
+      await pool.query("INSERT INTO categories (name) VALUES ($1) ON CONFLICT (name) DO NOTHING", [name]);
+      res.json({ message: "Категория добавлена" });
+    } catch (error) {
+      res.status(500).json({ message: "Ошибка сервера" });
+    }
+  });
+  
+  // Редактирование категории
+  app.put("/api/categories/:id", async (req, res) => {
+    const { id } = req.params;
+    const { name } = req.body;
+  
+    if (!name) return res.status(400).json({ message: "Название обязательно" });
+  
+    try {
+      await pool.query("UPDATE categories SET name = $1 WHERE id = $2", [name, id]);
+      res.json({ message: "Категория обновлена" });
+    } catch (error) {
+      res.status(500).json({ message: "Ошибка сервера" });
+    }
+  });
+  
+  // Удаление категории
+  app.delete("/api/categories/:id", async (req, res) => {
+    const { id } = req.params;
+  
+    try {
+      await pool.query("DELETE FROM categories WHERE id = $1", [id]);
+      res.json({ message: "Категория удалена" });
+    } catch (error) {
+      res.status(500).json({ message: "Ошибка сервера" });
+    }
+  });
+
+
 app.listen(port, () => {
     console.log(`Сервер запущен на порту ${port}`);
 });
