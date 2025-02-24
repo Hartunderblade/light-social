@@ -1,74 +1,54 @@
 <script setup>
-import { ref, defineProps, defineEmits, watch } from "vue";
+import { ref, defineProps, defineEmits, onMounted } from "vue";
+import axios from "axios";
 
-const props = defineProps({
-    isOpen: Boolean,
-    categories: Array,
-});
+const props = defineProps(["isOpen"]);
+const emit = defineEmits(["close", "postCreated"]);
 
-const emits = defineEmits(["close", "save"]);
-
-const text = ref("");
-const selectedCategory = ref("");
-const imageUrl = ref(null);
-const imageFile = ref(null);
-
-const handleImageUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-        imageFile.value = file;
-        imageUrl.value = URL.createObjectURL(file);
-    }
-};
-
-const savePost = () => {
-    if (!text.value.trim() || !selectedCategory.value) return;
-
-    const newPost = {
-        text: text.value,
-        category: selectedCategory.value,
-        image: imageFile.value || null,
-        imageUrl: imageUrl.value,
-    };
-
-    emits("save", newPost);
-    closeModal();
-};
-
+// Закрытие модального окна
 const closeModal = () => {
-    emits("close");
+  emit("close");
 };
+
+// Загружаем категории при открытии модального окна
+onMounted(fetchCategories);
 </script>
 
 <template>
-    <div v-if="isOpen" class="modal-overlay">
+    <div class="modal-overlay">
         <div class="modal">
-            <h2 class="modal__title">Создание поста</h2>
-            <div class="category">
-                <select v-model="selectedCategory">
-                    <option disabled value="">Выберите категорию</option>
-                    <option v-for="category in categories" :key="category.id" :value="category.name">
-                        {{ category.name }}
-                    </option>
-                </select>
-                <p v-if="selectedCategory" class="category__selected">{{ selectedCategory }}</p>
-            </div>
-            <div style="display: flex; column-gap: 1rem; margin-top: 26px;">
-                <textarea class="modal__text" v-model="text" placeholder="Введите текст поста"></textarea>
-                <input
-                    style="border: 2px dashed rgba(255, 255, 255, 0.2); border-radius: 16px; padding: 51px 16px; width: 235px; height: 179px; background: #222;"
-                    type="file" @change="handleImageUpload">
-            </div>
-
-
-            <img v-if="imageUrl" :src="imageUrl" alt="Изображение поста" class="preview-img">
-
-            <div class="buttons">
-                <button class="buttons__save" @click="savePost">Сохранить</button>
-                <button class="buttons__close" @click="closeModal">Отмена</button>
-            </div>
+          <h2 class="modal__title">Создание поста</h2>
+    
+          <div class="category">
+            <select v-model="selectedCategory">
+              <option disabled value="">Выберите категорию</option>
+              <option v-for="cat in categories" :key="cat.id" :value="cat.name">
+                {{ cat.name }}
+              </option>
+            </select>
+            <p class="category__selected">{{ selectedCategory }}</p>
+          </div>
+    
+          <div style="display: flex; column-gap: 1rem; margin-top: 26px;">
+            <textarea class="modal__text" v-model="text" placeholder="Введите текст поста"></textarea>
+            <input
+              style="border: 2px dashed rgba(255, 255, 255, 0.2); border-radius: 16px; padding: 51px 16px; width: 235px; height: 179px; background: #222;"
+              type="file"
+              @change="handleImageUpload"
+            />
+          </div>
+    
+          <img v-if="imageUrl" :src="imageUrl" alt="Изображение поста" class="preview-img" />
+    
+          <div class="buttons">
+            <button class="buttons__save" @click="savePost">Сохранить</button>
+            <button class="buttons__close" @click="closeModal">Отмена</button>
+          </div>
+    
+          <p v-if="message" class="success">{{ message }}</p>
+          <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
         </div>
-    </div>
+      </div>
 </template>
 
 <style scoped lang="scss">

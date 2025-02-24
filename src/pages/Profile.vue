@@ -10,6 +10,16 @@ const router = useRouter();
 const user = ref(null);
 const errorMessage = ref("");
 
+const isModalOpen = ref(false);
+
+const openModal = () => {
+  isModalOpen.value = true;
+};
+
+const closeModal = () => {
+  isModalOpen.value = false;
+};
+
 const fetchUserData = async () => {
   try {
     const token = localStorage.getItem("token");
@@ -34,7 +44,7 @@ onMounted(fetchUserData);
 <template>
   <div v-if="user" class="profile">
     <div class="blocks">
-      <div class="left">
+      <div style="position:relative;" class="left">
         <img :src="user.avatar" alt="Аватар" v-if="user.avatar" class="avatar" >
         <div class="name">
           <p class="name__full">{{ user.full_name }}</p>
@@ -42,8 +52,11 @@ onMounted(fetchUserData);
         </div>
         <div class="categories">
           <p class="category">{{ user.category }}</p>
-
         </div>
+        <button style="position: absolute; right: 1.8rem; top: 1.8rem;" class="content" @click="openModal">
+          <img class="content__settings" src="@/assets/images/icons/settings.svg">
+        </button>
+        
 <!--        <button @click="isEditProfileOpen = true" class="setting">-->
 <!--          <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">-->
 <!--            <path d="M18.6838 15C18.6838 12.9653 17.0344 11.3158 14.9996 11.3158C12.9649 11.3158 11.3154 12.9653 11.3154 15C11.3154 17.0347 12.9649 18.6842 14.9996 18.6842C17.0344 18.6842 18.6838 17.0347 18.6838 15Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />-->
@@ -60,6 +73,8 @@ onMounted(fetchUserData);
         </button>
       </div>
     </div>
+
+    <EditProfile :isOpen="isModalOpen" @close="closeModal"/>
 
     <!-- <CreatePost 
       :isOpen="isCreatePostOpen" 

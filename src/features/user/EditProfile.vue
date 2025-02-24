@@ -1,167 +1,209 @@
+<script setup>
+import { ref, defineProps, defineEmits, onMounted } from "vue";
+import axios from "axios";
+
+const props = defineProps(["isOpen"]);
+const emit = defineEmits(["close"]);
+
+const fullName = ref("");
+const login = ref("");
+const category = ref("");
+const password = ref("");
+const fileAvatar = ref(null);
+const avatarPreview = ref("");
+const categories = ref([]);
+const user = ref(null);
+const errorMessage = ref("");
+const message = ref("");
+
+
+// Получение данных пользователя
+const fetchUserData = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.get("http://localhost:3000/profile", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    user.value = response.data;
+    fullName.value = user.value.full_name;
+    login.value = user.value.login;
+    category.value = user.value.category;
+    avatarPreview.value = user.value.avatar;
+  } catch (error) {
+    errorMessage.value = "Ошибка загрузки данных профиля";
+  }
+};
+
+// Получение списка категорий
+const fetchCategories = async () => {
+  try {
+    const response = await axios.get("http://localhost:3000/api/categories");
+    categories.value = response.data;
+  } catch (error) {
+    errorMessage.value = "Ошибка загрузки категорий";
+  }
+};
+
+// Обработчик загрузки аватара
+const handleFileChange = (event) => {
+  fileAvatar.value = event.target.files[0];
+  if (fileAvatar.value) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      avatarPreview.value = e.target.result;
+    };
+    reader.readAsDataURL(fileAvatar.value);
+  }
+};
+
+// Обновление профиля
+const updateProfile = async () => {
+  const formData = new FormData();
+  formData.append("fullName", fullName.value);
+  formData.append("login", login.value);
+  formData.append("category", category.value);
+  if (fileAvatar.value) {
+    formData.append("fileAvatar", fileAvatar.value);
+  }
+  if (password.value) {
+    formData.append("password", password.value);
+  }
+
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.put("http://localhost:3000/profile", formData, {
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" },
+    });
+
+    message.value = "Профиль успешно обновлён!";
+    user.value = response.data.user;
+  } catch (error) {
+    errorMessage.value = "Ошибка при обновлении профиля";
+  }
+};
+
+// Удаление профиля
+const deleteProfile = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    await axios.delete("http://localhost:3000/profile", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    localStorage.removeItem("token");
+    emit("close");
+  } catch (error) {
+    errorMessage.value = "Ошибка при удалении профиля";
+  }
+};
+
+// Закрытие модального окна
+const closeModal = () => {
+  emit("close");
+};
+
+// Загружаем данные при открытии модального окна
+onMounted(() => {
+  fetchCategories();
+  fetchUserData();
+});
+</script>
+
 <template>
-  <div class="modal">
+  <div v-if="isOpen" class="modal">
     <div class="modal-content">
       <h2>Редактировать профиль</h2>
-      <label>Полное имя:</label>
-      <input v-model="fullName" type="text" />
-
-      <label>Логин:</label>
-      <input v-model="username" type="text" />
-
-      <label>Почта:</label>
-      <input v-model="email" type="email" />
-
-      <label>Категории:</label>
-      <select v-model="selectedCategories" multiple>
-        <option v-for="category in categories" :key="category.id" :value="category.name">
-          {{ category.name }}
-        </option>
-      </select>
-
-      <label>Аватар:</label>
-      <input type="file" @change="handleAvatarUpload" />
-      <img v-if="previewAvatar" :src="previewAvatar" class="preview-avatar" />
-
+      <div>
+        <input class="modal-content__file" type="file" @change="handleFileChange" />
+        <img class="preview-avatar" :src="avatarPreview" v-if="avatarPreview" />
+      </div>
+      <div>
+        <label>Редактировать имя</label>
+        <input v-model="fullName" type="text" placeholder="Имя" />
+      </div>
+      
+      <div>
+        <select v-model="category" class="auth__input" required>
+          <option disabled value="">Выберите категорию</option>
+          <option v-for="cat in categories" :key="cat.id" :value="cat.name">
+            {{ cat.name }}
+          </option>
+        </select>
+        
+      </div>
+      <div>
+        <label>Изменить пароль</label>
+        <input v-model="password" type="password" />
+      </div>
+      <div>
+        <label>Изменить логин</label>
+        <input v-model="login" type="text" />
+      </div>
       <button @click="updateProfile">Сохранить</button>
-      <button @click="$emit('close')">Отмена</button>
+      <button @click="closeModal">Закрыть</button>
+      <button @click="deleteProfile">Удалить профиль</button>
+
+      <p v-if="message" class="success">{{ message }}</p>
+      <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
     </div>
   </div>
 </template>
 
-<script setup>
-import { ref, defineEmits, onMounted } from "vue";
-import axios from "axios";
-
-const emit = defineEmits(["close", "profileUpdated"]);
-
-const fullName = ref("");
-const username = ref("");
-const email = ref("");
-const selectedCategories = ref([]);
-const avatar = ref(null);
-const previewAvatar = ref("");
-const categories = ref([]);
-
-const fetchCategories = async () => {
-  try {
-    const res = await axios.get("http://localhost:3000/categories");
-    categories.value = res.data;
-  } catch (error) {
-    console.error("Ошибка загрузки категорий", error);
-  }
-};
-
-const fetchUserProfile = async () => {
-  const token = localStorage.getItem("token");
-  try {
-    const res = await axios.get("http://localhost:3000/user/profile", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    fullName.value = res.data.full_name;
-    username.value = res.data.username;
-    email.value = res.data.email;
-    selectedCategories.value = res.data.categories || [];
-    previewAvatar.value = res.data.avatar ? `http://localhost:3000${res.data.avatar}` : "";
-  } catch (error) {
-    console.error("Ошибка загрузки профиля", error);
-  }
-};
-
-const handleAvatarUpload = (event) => {
-  const file = event.target.files[0];
-  if (file) {
-    avatar.value = file;
-    const reader = new FileReader();
-    reader.onload = (e) => (previewAvatar.value = e.target.result);
-    reader.readAsDataURL(file);
-  }
-};
-
-const updateProfile = async () => {
-  const token = localStorage.getItem("token");
-  const formData = new FormData();
-  formData.append("full_name", fullName.value);
-  formData.append("username", username.value);
-  formData.append("email", email.value);
-  formData.append("categories", JSON.stringify(selectedCategories.value));
-  if (avatar.value) {
-    formData.append("avatar", avatar.value);
-  }
-
-  try {
-    await axios.put("http://localhost:3000/user/profile", formData, {
-      headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" },
-    });
-
-    emit("profileUpdated");
-    emit("close");
-  } catch (error) {
-    console.error("Ошибка обновления профиля", error);
-  }
-};
-
-onMounted(() => {
-  fetchCategories();
-  fetchUserProfile();
-});
-</script>
-
-<style scoped>
-.modal-overlay {
+<style scoped lang="scss">
+.modal {
   position: fixed;
   top: 0;
+  right: 0;
+  bottom: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.modal {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  width: 400px;
+  background-color: rgba(0, 0, 0, 0.8);
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+
+  &-content {
+    border-radius: 32px;
+    padding: 1rem;
+    width: 100%;
+    max-width: 761px;
+    background-color: #161616;
+    text-align: center;
+
+    h2 {
+      font-weight: 700;
+      line-height: 133%;
+      letter-spacing: -0.02em;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      max-width: 546px;
+      text-align: center;
+      padding: 20px 0;
+    }
+
+    &__file {
+      width: 100px;
+    height: 100px;
+    background-color: #327ce2;
+    border-radius: 100%;
+    margin-left: 200px;
+    margin-bottom: 1rem;
+    }
+  }
 }
 
-input, select {
-  width: 100%;
-  margin-bottom: 10px;
-  padding: 8px;
-}
-
-.buttons {
-  display: flex;
-  justify-content: space-between;
-}
-
-button {
-  padding: 10px;
-  cursor: pointer;
-}
-
-.selected-categories {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-}
-
-.category-tag {
-  background: #ddd;
-  padding: 5px;
-  border-radius: 4px;
-}
-
-.category-tag button {
-  margin-left: 5px;
-  background: red;
-  color: white;
-  border: none;
-  cursor: pointer;
+input {
+  width: 504px;
+        margin: 10px 0;
+        background: #333;
+        color: #fff;
+        border: 1px solid #fff;
+        border-radius: 14px;
+        padding: 24px 0 24px 21px;
+        font-size: 18px;
 }
 </style>
