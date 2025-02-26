@@ -1,46 +1,24 @@
 <script setup>
 import { ref, onMounted } from "vue";
+import { useRoute } from "vue-router";
 import axios from "axios";
-import { useRoute, useRouter } from "vue-router";
 
 const route = useRoute();
-const router = useRouter();
 const user = ref(null);
-const userId = ref(route.params.id); // ID друга
-const message = ref("");
+const errorMessage = ref("");
 
-// const fetchUserProfile = async () => {
-//   try {
-//     const res = await axios.get(`http://localhost:3000/user/${route.params.id}`);
-//     user.value = res.data;
-//   } catch (err) {
-//     message.value = "Ошибка загрузки профиля";
-//   }
-// };
-
-// Загружаем профиль пользователя
 const fetchUserProfile = async () => {
   try {
-    const res = await axios.get(`http://localhost:3000/user/${userId.value}`);
-    user.value = res.data;
-  } catch (err) {
-    message.value = "Ошибка загрузки профиля";
+    const response = await axios.get(`http://localhost:3000/api/users/${route.params.id}`);
+    user.value = response.data;
+  } catch (error) {
+    console.error("Ошибка при загрузке профиля:", error);
+    errorMessage.value = "Ошибка при загрузке профиля";
   }
-};
-
-// Переход в чат с пользователем
-const openChat = () => {
-  router.push(`/user/chat/${userId.value}`);
-};
-
-// Переход в свой профиль
-const goBack = () => {
-  router.push("/profile");
 };
 
 onMounted(fetchUserProfile);
 
-// onMounted(fetchUserProfile);
 </script>
 
 <template>
@@ -59,16 +37,19 @@ onMounted(fetchUserProfile);
     </div>
   </div> -->
   <div v-if="user" class="left">
-    <img class="avatar" v-if="user.avatar" :src="'http://localhost:3000' + user.avatar" width="100" alt="Аватар">
+    <img :src="user.avatar ? `http://localhost:3000${user.avatar}` : 'src/assets/images/defolt-img.jpg'" class="avatar" width="100" alt="Аватар">
     <div class="name">
       <p class="name__full">{{ user.full_name }}</p>
-      <p class="name__login">@{{ user.username }}</p>
+      <p class="name__login">{{ user.login }}</p>
     </div>
     <div class="categories">
       <p class="category">{{ user.category }}</p>
     </div>
-    <!-- <button @click="openChat">Написать</button> -->
+    <button>Написать</button>
+    <button>Добавить</button>
   </div>
+  <p v-else-if="errorMessage">{{ errorMessage }}</p>
+  <p v-else>Загрузка...</p>
 </template>
 
 <style scoped lang="scss">

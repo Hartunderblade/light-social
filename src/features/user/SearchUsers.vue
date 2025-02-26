@@ -4,27 +4,56 @@ import axios from "axios";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
-const users = ref([]);
 
+const users = ref([]);
+const errorMessage = ref("");
+
+// поиск пользователей
+const searchQuery = ref("");
+
+const fetchUsers = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.get("http://localhost:3000/api/users", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    users.value = response.data;
+  } catch (error) {
+    console.error("Ошибка при загрузке пользователей:", error);
+    errorMessage.value = "Ошибка при загрузке пользователей";
+  }
+};
+
+// функция поиска пользователя
+
+const searchUser = computed(() => {
+  return users.value.filter((user) => `${user.full_name} ${user.login}`.toLowerCase().includes(searchQuery.value.toLowerCase()));
+});
+
+// Переход в профиль пользователя
+const goToProfile = (userId) => {
+  router.push(`/user/frends/${userId}`);
+};
+
+onMounted(fetchUsers);
 </script>
 
 <template>
   <div class="all">
-    <input placeholder="Найди друга по интересам..." class="search" />
-
-    <div class="users">
-      <div class="user">
-        <img src="" alt="Аватар" width="50" class="avatar" />
+    <input v-model="searchQuery" placeholder="Найди друга по интересам..." class="search" required/>
+    <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
+    <div v-if="searchUser.length > 0" class="users">
+      <div v-for="user in users" :key="user.id" class="user">
+        <img :src="user.avatar ? `http://localhost:3000${user.avatar}` : 'src/assets/images/defolt-img.jpg'" alt="Аватар" width="50" class="avatar" v-if="user.avatar" />
         <div class="text">
-          <p>Имя</p>
-          <p>@логин</p>
+          <p>{{ user.full_name }}</p>
+          <p>@{{ user.login }}</p>
         </div>
-
-        <button>Перейти</button>
+        <button @click="goToProfile(user.id)">Перейти</button>
       </div>
     </div>
-
-    <p>Пользователи не найдены</p>
+    <p v-else>Пользователь не найден</p>
+    
   </div>
 </template>
 

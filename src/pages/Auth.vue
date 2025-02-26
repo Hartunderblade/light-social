@@ -43,18 +43,6 @@ const handleFileChange = (event) => {
   fileAvatar.value = event.target.files[0] || null;
 };
 
-// const login = async () => {
-//   try {
-//     const response = await axios.post("http://localhost:3000/login", {
-//       username: username.value,
-//       password: password.value,
-//     });
-//     localStorage.setItem("token", response.data.token);
-//     router.push('/admin');
-//   } catch (error) {
-//     errorMessage.value = "Ошибка авторизации";
-//   }
-// };
 
 const userRegister = async () => {
   errorMessage.value = "";

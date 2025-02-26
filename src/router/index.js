@@ -45,7 +45,7 @@ const router = createRouter({
           component: () => import('@/pages/Frends.vue'),
         },
         {
-          path: '/user/frend/:id',
+          path: '/user/frends/:id',
           name: 'frend',
           component: () => import('@/pages/FrendProfile.vue'),
           props: true
