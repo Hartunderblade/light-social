@@ -1,21 +1,88 @@
 <script setup>
-import { ref, defineProps, defineEmits, onMounted } from "vue";
+import { ref, onMounted } from "vue";
+import { defineProps, defineEmits } from "vue";
 import axios from "axios";
 
-const props = defineProps(["isOpen"]);
-const emit = defineEmits(["close", "postCreated"]);
+defineProps({
+  isOpen: Boolean,
+});
 
-// Закрытие модального окна
-const closeModal = () => {
+const emit = defineEmits(["close"]);
+
+const close = () => {
   emit("close");
 };
 
-// Загружаем категории при открытии модального окна
+const categories = ref([]);
+const selectedCategory = ref("");
+const text = ref("");
+const imageFile = ref(null);
+const imageUrl = ref(null);
+const message = ref("");
+const errorMessage = ref("");
+
+// Загружаем категории из API
+const fetchCategories = async () => {
+  try {
+    const response = await axios.get("http://localhost:3000/api/categories");
+    categories.value = response.data;
+  } catch (error) {
+    console.error("Ошибка загрузки категорий:", error);
+  }
+};
+
+// Загружаем категории при открытии окна
 onMounted(fetchCategories);
+
+// Обработчик загрузки изображения
+const handleImageUpload = (event) => {
+  const file = event.target.files[0];
+  imageFile.value = file;
+  imageUrl.value = URL.createObjectURL(file);
+};
+
+// Функция сохранения поста
+const savePost = async () => {
+  try {
+    const userId = localStorage.getItem("userId"); // Получаем ID пользователя
+    // if (!userId || !selectedCategory.value || !text.value) {
+    //   errorMessage.value = "Заполните все поля!";
+    //   return;
+    // }
+
+    const formData = new FormData();
+    formData.append("userId", userId);
+    formData.append("category", selectedCategory.value);
+    formData.append("text", text.value);
+    if (imageFile.value) {
+      formData.append("image", imageFile.value);
+    }
+
+    await axios.post("http://localhost:3000/api/posts", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+
+    message.value = "Пост успешно создан!";
+    errorMessage.value = "";
+    text.value = "";
+    selectedCategory.value = "";
+    imageFile.value = null;
+    imageUrl.value = null;
+
+    // Закрываем модальное окно после успешного создания поста
+    setTimeout(() => {
+      emit("close");
+      message.value = "";
+    }, 1000);
+  } catch (error) {
+    console.error("Ошибка при создании поста:", error);
+    errorMessage.value = "Ошибка при создании поста";
+  }
+};
 </script>
 
 <template>
-    <div class="modal-overlay">
+    <div v-if="isOpen" class="modal-overlay">
         <div class="modal">
           <h2 class="modal__title">Создание поста</h2>
     
@@ -42,7 +109,7 @@ onMounted(fetchCategories);
     
           <div class="buttons">
             <button class="buttons__save" @click="savePost">Сохранить</button>
-            <button class="buttons__close" @click="closeModal">Отмена</button>
+            <button class="buttons__close" @click="close">Отмена</button>
           </div>
     
           <p v-if="message" class="success">{{ message }}</p>

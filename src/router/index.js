@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+// import { refdefineProps } from "vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -13,11 +14,13 @@ const router = createRouter({
       name: 'admin',
       component: () => import('@/pages/Admin.vue')
       // meta: { requiresAuth: true }
+      
     },
     {
       path: '/user',
       name: 'user',
       component: () => import('@/features/user/User.vue'),
+      meta: { requiresAuth: true },
       children: [
         {
           path: '/user',
@@ -54,5 +57,15 @@ const router = createRouter({
     },
   ],
 })
+
+router.beforeEach((to, from, next) => {
+  const isAuthenticated = !!localStorage.getItem("token");
+
+  if (to.meta.requiresAuth && !isAuthenticated) {
+    next("/login"); // Если нет токена, перенаправляем на вход
+  } else {
+    next();
+  }
+});
 
 export default router

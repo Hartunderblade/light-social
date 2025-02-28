@@ -1,7 +1,13 @@
 <script setup>
 import { RouterLink, RouterView } from 'vue-router';
+import { useRouter } from "vue-router";
 
+const router = useRouter();
 
+const logout = () => {
+  localStorage.removeItem("token"); // Удаляем токен из localStorage
+  router.push("/login"); // Перенаправляем на страницу входа
+};
 </script>
 
 <template>
@@ -13,8 +19,8 @@ import { RouterLink, RouterView } from 'vue-router';
             <RouterLink to="/user/chatList"><img src="@/assets/images/icons/message.svg"></RouterLink>
             <RouterLink to="/user/frends"><img src="@/assets/images/icons/frends.svg"></RouterLink>
         </div>
-        <div class="content">
-            <img class="content__settings" src="@/assets/images/icons/settings.svg">
+        <div @click="logout" class="content">
+            <img class="content__settings" src="@/assets/images/icons/logout.svg">
         </div>
         <!-- <div class="user">
             <div style="color: red; width: 58px; height: 58px;"></div>

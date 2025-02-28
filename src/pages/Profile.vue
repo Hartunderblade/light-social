@@ -2,9 +2,10 @@
 import { ref, onMounted, defineProps, defineEmits } from "vue";
 import axios from "axios";
 import { useRouter } from "vue-router";
-import CreatePost from "@/features/user/CreatePost.vue";
-import EditPost from "@/features/user/CreatePost.vue";
 import EditProfile from "@/features/user/EditProfile.vue";
+import SettingsUser from "@/widgets/SettingsUser.vue";
+import AddPost from "@/widgets/AddPost.vue";
+import ListPostsUser from "@/widgets/ListPostsUser.vue";
 
 const router = useRouter();
 const user = ref(null);
@@ -53,21 +54,16 @@ onMounted(fetchUserData);
         <div class="categories">
           <p class="category">{{ user.category }}</p>
         </div>
-        <button style="position: absolute; right: 1.8rem; top: 1.8rem;" class="content" @click="openModal">
-          <img class="content__settings" src="@/assets/images/icons/settings.svg">
-        </button>
+        <SettingsUser @click="openModal"/>
+        <EditProfile :isOpen="isModalOpen" @close="closeModal"/>
       </div>
       <div class="right">
-        <button class="add" @click="openCreatePost">
-          <svg width="46" height="45" viewBox="0 0 46 45" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M23.0001 3.38776L23.0001 41.6124M3.88761 22.5001L42.1123 22.5001" stroke="#327CE2" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
-          </svg>
-          <p>Добавить пост</p>
-        </button>
+        <AddPost/>
       </div>
     </div>
-    <EditProfile :isOpen="isModalOpen" @close="closeModal"/>
+    
 <div>
+  
   <div  class="post">
       <div class="user" >
           <img class="user__avatar" src="@/assets/images/defolt-img.jpg" alt="Аватар">
@@ -87,9 +83,9 @@ onMounted(fetchUserData);
       </div>
       </div>
   </div>
+  <ListPostsUser/>
 </div>
 </div>
-  
 </template>
 
 <style scoped lang="scss">
@@ -151,22 +147,6 @@ padding: 4px 16px;
   position: absolute;
   right: 2rem;
   top: 2rem;
-}
-
-.add {
-  background: #222;
-  border: 2px dashed rgba(255, 255, 255, 0.2);
-  border-radius: 16px;
-  padding: 26px 16px;
-  width: 198px;
-  height: 164px;
-  text-align: center;
-
-  p {
-    font-weight: 400;
-    font-size: 18px;
-    margin-top: 0.4rem;
-  }
 }
 
 .user {

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, defineProps } from "vue";
 import { useRoute } from "vue-router";
 import axios from "axios";
 
@@ -22,20 +22,6 @@ onMounted(fetchUserProfile);
 </script>
 
 <template>
-  <!-- <div>
-    <p v-if="message">{{ message }}</p>
-    <div v-if="user">
-      <img v-if="user.avatar" :src="'http://localhost:3000' + user.avatar" alt="Аватар" width="100" />
-      <p><strong>Имя:</strong> {{ user.full_name }}</p>
-      <p><strong>Логин:</strong> {{ user.username }}</p>
-      <p><strong>Почта:</strong> {{ user.email }}</p>
-      <p><strong>Категория:</strong> {{ user.category }}</p>
-      <button @click="$router.push(`/user/chat/${friend.id}`)">Написать</button>
-      <button @click="openChat">Написать</button>
-
-      <button @click="router.push('/user/profile')">Назад</button>
-    </div>
-  </div> -->
   <div v-if="user" class="left">
     <img :src="user.avatar ? `http://localhost:3000${user.avatar}` : 'src/assets/images/defolt-img.jpg'" class="avatar" width="100" alt="Аватар">
     <div class="name">
@@ -45,8 +31,13 @@ onMounted(fetchUserProfile);
     <div class="categories">
       <p class="category">{{ user.category }}</p>
     </div>
-    <button>Написать</button>
-    <button>Добавить</button>
+    <div class="buttons" style="display: flex; column-gap: 1rem;">
+      <button>Написать</button>
+      <button @click="addFriend" class="friend-button">
+        {{ isFriend ? "Убрать" : "Добавить" }}
+      </button>
+    </div>
+    
   </div>
   <p v-else-if="errorMessage">{{ errorMessage }}</p>
   <p v-else>Загрузка...</p>
