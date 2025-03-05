@@ -7,78 +7,40 @@ defineProps({
   isOpen: Boolean,
 });
 
-const emit = defineEmits(["close"]);
+// const emit = defineEmits(["close"]);
 
 const close = () => {
   emit("close");
 };
 
-const categories = ref([]);
-const selectedCategory = ref("");
-const text = ref("");
-const imageFile = ref(null);
-const imageUrl = ref(null);
-const message = ref("");
-const errorMessage = ref("");
+const title = ref("");
+const content = ref("");
+const image = ref("");
+const emit = defineEmits(["postCreated"]);
 
-// Загружаем категории из API
-const fetchCategories = async () => {
-  try {
-    const response = await axios.get("http://localhost:3000/api/categories");
-    categories.value = response.data;
-  } catch (error) {
-    console.error("Ошибка загрузки категорий:", error);
-  }
-};
 
-// Загружаем категории при открытии окна
-onMounted(fetchCategories);
+const createPost = async () => {
+    try {
+        const token = localStorage.getItem("token");
+        const response = await axios.post(
+            "http://localhost:3000/posts/create",
+            { title: title.value, content: content.value, image: image.value },
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
 
-// Обработчик загрузки изображения
-const handleImageUpload = (event) => {
-  const file = event.target.files[0];
-  imageFile.value = file;
-  imageUrl.value = URL.createObjectURL(file);
-};
+        // Очищаем поля после создания поста
+        title.value = "";
+        content.value = "";
+        image.value = "";
 
-// Функция сохранения поста
-const savePost = async () => {
-  try {
-    const userId = localStorage.getItem("userId"); // Получаем ID пользователя
-    // if (!userId || !selectedCategory.value || !text.value) {
-    //   errorMessage.value = "Заполните все поля!";
-    //   return;
-    // }
-
-    const formData = new FormData();
-    formData.append("userId", userId);
-    formData.append("category", selectedCategory.value);
-    formData.append("text", text.value);
-    if (imageFile.value) {
-      formData.append("image", imageFile.value);
+        // Сообщаем родительскому компоненту, что пост создан
+        emit("postCreated");
+    } catch (error) {
+        console.error("Ошибка при создании поста:", error);
     }
-
-    await axios.post("http://localhost:3000/api/posts", formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-
-    message.value = "Пост успешно создан!";
-    errorMessage.value = "";
-    text.value = "";
-    selectedCategory.value = "";
-    imageFile.value = null;
-    imageUrl.value = null;
-
-    // Закрываем модальное окно после успешного создания поста
-    setTimeout(() => {
-      emit("close");
-      message.value = "";
-    }, 1000);
-  } catch (error) {
-    console.error("Ошибка при создании поста:", error);
-    errorMessage.value = "Ошибка при создании поста";
-  }
 };
+
+
 </script>
 
 <template>
@@ -111,10 +73,14 @@ const savePost = async () => {
             <button class="buttons__save" @click="savePost">Сохранить</button>
             <button class="buttons__close" @click="close">Отмена</button>
           </div>
-    
-          <p v-if="message" class="success">{{ message }}</p>
-          <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
         </div>
+        <div class="create-post">
+          <h2>Создать пост</h2>
+          <input v-model="title" type="text" placeholder="Заголовок" />
+          <textarea v-model="content" placeholder="Текст поста"></textarea>
+          <input v-model="image" type="text" placeholder="Ссылка на изображение" />
+          <button @click="createPost">Опубликовать</button>
+      </div>
       </div>
 </template>
 

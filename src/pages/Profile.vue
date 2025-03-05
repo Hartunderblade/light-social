@@ -79,7 +79,7 @@ onMounted(fetchUserProfile);
       </div>
       </div>
   </div> -->
-  <!-- <ListPostsUser/> -->
+  <ListPostsUser/>
 </div>
 </div>
 </template>
