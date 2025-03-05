@@ -2,24 +2,14 @@
 import { ref, onMounted, computed, watch  } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
+import RegisterUser from '@/pages/RegisterUser.vue';
+import LoginUser from '@/pages/LoginUser.vue';
+
+
 const isLogin = ref(true);
 const isModalOpen = ref(false);
 
 const router = useRouter();
-
-const username = ref("");
-
-const fileAvatar = ref(null);
-const fullName = ref("");
-const login = ref("");
-const email = ref("");
-const category = ref("");
-const password = ref("");
-const confirmPassword = ref("");
-const consent = ref(false);
-const categories = ref([]);
-const errorMessage = ref("");
-const successMessage = ref("");
 
 const openModal = (loginMode) => {
     isLogin.value = loginMode;
@@ -30,92 +20,10 @@ const closeModal = () => {
     isModalOpen.value = false;
 };
 
-const fetchCategories = async () => {
-  try {
-    const response = await axios.get("http://localhost:3000/api/categories");
-    categories.value = response.data;
-  } catch (error) {
-    errorMessage.value = "Ошибка загрузки категорий";
-  }
-};
 
-const handleFileChange = (event) => {
-  fileAvatar.value = event.target.files[0] || null;
-};
-
-
-const userRegister = async () => {
-  errorMessage.value = "";
-  successMessage.value = "";
-
-  if (!fullName.value || !login.value || !email.value || !category.value || !password.value || !confirmPassword.value || !consent.value) {
-    errorMessage.value = "Заполните все поля!";
-    return;
-  }
-
-  if (password.value !== confirmPassword.value) {
-    errorMessage.value = "Пароли не совпадают!";
-    return;
-  }
-
-  if (!fileAvatar.value) {
-    errorMessage.value = "Загрузите аватар!";
-    return;
-  }
-
-  const formData = new FormData();
-  formData.append("fileAvatar", fileAvatar.value);
-  formData.append("fullName", fullName.value);
-  formData.append("login", login.value);
-  formData.append("email", email.value);
-  formData.append("category", category.value);
-  formData.append("password", password.value);
-  formData.append("confirmPassword", confirmPassword.value);
-  formData.append("consent", consent.value ? "true" : "false");
-
-  try {
-    await axios.post("http://localhost:3000/register", formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-    successMessage.value = "Вы успешно зарегистрированы!";
-    
-    // Очистка полей после успешной регистрации
-    fullName.value = "";
-    login.value = "";
-    email.value = "";
-    category.value = "";
-    password.value = "";
-    confirmPassword.value = "";
-    consent.value = false;
-    fileAvatar.value = null;
-    document.querySelector("#file-input").value = "";
-  } catch (error) {
-    errorMessage.value = error.response?.data?.message || "Ошибка регистрации";
-  }
-};
-
-const loginUser = async () => {
-  errorMessage.value = "";
-
-  if (!login.value || !password.value) {
-    errorMessage.value = "Введите логин и пароль!";
-    return;
-  }
-
-  try {
-    const response = await axios.post("http://localhost:3000/login", {
-      login: login.value,
-      password: password.value,
-    });
-
-    localStorage.setItem("token", response.data.token);
-    router.push("/user/profile"); // Перенаправление в профиль
-  } catch (error) {
-    errorMessage.value = error.response?.data?.message || "Ошибка входа";
-  }
-};
-
-fetchCategories();
+// const handleFileChange = (event) => {
+//   fileAvatar.value = event.target.files[0] || null;
+// };
 
 </script>
 
@@ -154,48 +62,11 @@ fetchCategories();
                         <img class="auth__box-logo" src="@/assets/images/icons/logo.svg" alt="Light">
                         <p class="auth__box-subtitle">Социальная сеть</p>
                         <div v-if="isLogin">
-                            <form @submit.prevent="loginUser">
-                                <input v-model="login" class="auth__input" type="text" placeholder="Логин" required />
-                                <input v-model="password" class="auth__input" type="password" placeholder="Пароль" required />
-                                <button class="auth__button">Войти</button>
-                                <p class="auth__text">
-                                    У вас ещё нет аккаунта?
-                                    <button class="auth__link" @click="isLogin = false">Зарегистрироваться</button>
-                                </p>
-                                <p v-if="errorMessage">{{ errorMessage }}</p>
-                            </form>
+                            
+                          <LoginUser/>
                         </div>
                         <div v-else>
-                            <form @submit.prevent="userRegister">
-                                <input @change="handleFileChange" class="auth__file" type="file"/>
-                                
-                                <input v-model="fullName" class="auth__input" type="text" placeholder="Имя" required  />
-                            
-                                <input v-model="login" class="auth__input" type="text" placeholder="Логин" required  />
-                            
-                                <input v-model="email" class="auth__input" type="email" placeholder="Почта" required  />
-                            
-                                <select v-model="category" class="auth__input" required>
-                                  <option disabled value="">Выберите категорию</option>
-                                  <option v-for="cat in categories" :key="cat.id" :value="cat.name">
-                                    {{ cat.name }}
-                                  </option>
-                                </select>
-                            
-                                <input v-model="password" class="auth__input" type="password" placeholder="Пароль" required/>
-                            
-                                <input v-model="confirmPassword" class="auth__input" type="password" placeholder="Подтвердите пароль" required/>
-                            
-                                <label class="modal__checkbox">
-                                  <input type="checkbox" v-model="consent" required/>
-                                  <p>Согласен на обработку персональных данных</p>
-                                </label>
-                            
-                                <button type="submit" class="auth__button">Зарегистрироваться</button>
-                                <p class="auth__text"> Уже есть аккаунт? <button @click="isLogin = true" class="auth__link">Войти</button></p>
-                                <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
-                                <p v-if="successMessage" class="success">{{ successMessage }}</p>
-                              </form>
+                          <RegisterUser/>
                         </div>
                     </div>
                 </div>

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, defineProps, defineEmits } from "vue";
+import { ref, onMounted } from "vue";
 import axios from "axios";
 import { useRouter } from "vue-router";
 import EditProfile from "@/features/user/EditProfile.vue";
@@ -21,50 +21,46 @@ const closeModal = () => {
   isModalOpen.value = false;
 };
 
-const fetchUserData = async () => {
-  try {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      router.push("/login");
-      return;
+const fetchUserProfile = async () => {
+    try {
+        const response = await axios.get('http://localhost:3000/users/me', {
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        user.value = response.data;
+    } catch (error) {
+        console.error("Ошибка загрузки профиля:", error);
+        router.push('/'); // Если токен недействителен — редирект на вход
     }
-
-    const response = await axios.get("http://localhost:3000/profile", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    user.value = response.data;
-  } catch (error) {
-    errorMessage.value = "Ошибка загрузки данных профиля";
-  }
 };
 
-onMounted(fetchUserData);
+// console.log("Запрос профиля для ID:", userId);
+
+
+onMounted(fetchUserProfile);
 </script>
 
 <template>
   <div v-if="user" class="profile">
     <div class="blocks">
       <div style="position:relative;" class="left">
-        <img :src="user.avatar" alt="Аватар" v-if="user.avatar" class="avatar" >
+        <img :src="'http://localhost:3000' + user.avatar || './src/assets/images/bc-auth.jpg'" alt="Аватар" class="avatar" >
         <div class="name">
-          <p class="name__full">{{ user.full_name }}</p>
+          <p class="name__full">{{ user.name }}</p>
           <p class="name__login">@{{ user.login }}</p>
         </div>
         <div class="categories">
-          <p class="category">{{ user.category }}</p>
+          <p class="category">{{ user.categories?.join(", ") || "Не выбраны" }}</p>
         </div>
-        <SettingsUser @click="openModal"/>
-        <EditProfile :isOpen="isModalOpen" @close="closeModal"/>
+        <!-- <SettingsUser @click="openModal"/> -->
+        <!-- <EditProfile :isOpen="isModalOpen" @close="closeModal"/> -->
       </div>
       <div class="right">
         <AddPost/>
       </div>
     </div>
-    
-<div>
+  <div>
   
-  <div  class="post">
+  <!-- <div  class="post">
       <div class="user" >
           <img class="user__avatar" src="@/assets/images/defolt-img.jpg" alt="Аватар">
           <div class="user-info">
@@ -82,8 +78,8 @@ onMounted(fetchUserData);
               alt="Теннисные ракетки на корте">
       </div>
       </div>
-  </div>
-  <ListPostsUser/>
+  </div> -->
+  <!-- <ListPostsUser/> -->
 </div>
 </div>
 </template>

@@ -58,14 +58,14 @@ const router = createRouter({
   ],
 })
 
-router.beforeEach((to, from, next) => {
-  const isAuthenticated = !!localStorage.getItem("token");
+// router.beforeEach((to, from, next) => {
+//   const isAuthenticated = !!localStorage.getItem("token");
 
-  if (to.meta.requiresAuth && !isAuthenticated) {
-    next("/login"); // Если нет токена, перенаправляем на вход
-  } else {
-    next();
-  }
-});
+//   if (to.meta.requiresAuth && !isAuthenticated) {
+//     next("/login"); // Если нет токена, перенаправляем на вход
+//   } else {
+//     next();
+//   }
+// });
 
 export default router

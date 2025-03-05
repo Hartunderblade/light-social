@@ -5,8 +5,9 @@ import { useRouter } from "vue-router";
 const router = useRouter();
 
 const logout = () => {
-  localStorage.removeItem("token"); // Удаляем токен из localStorage
-  router.push("/login"); // Перенаправляем на страницу входа
+    localStorage.removeItem('token');
+    // delete axios.defaults.headers.common['Authorization'];
+    router.push('/'); // Редирект на страницу входа
 };
 </script>
 
