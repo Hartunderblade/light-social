@@ -43,13 +43,13 @@ onMounted(fetchUserProfile);
   <div v-if="user" class="profile">
     <div class="blocks">
       <div style="position:relative;" class="left">
-        <img :src="'http://localhost:3000' + user.avatar || './src/assets/images/bc-auth.jpg'" alt="Аватар" class="avatar" >
+        <img src="/src/assets/images/bc-auth.jpg" alt="Аватар" class="avatar" >
         <div class="name">
           <p class="name__full">{{ user.name }}</p>
           <p class="name__login">@{{ user.login }}</p>
         </div>
         <div class="categories">
-          <p class="category">{{ user.categories?.join(", ") || "Не выбраны" }}</p>
+          <p class="category">{{ user.category }}</p>
         </div>
         <!-- <SettingsUser @click="openModal"/> -->
         <!-- <EditProfile :isOpen="isModalOpen" @close="closeModal"/> -->
@@ -105,7 +105,8 @@ onMounted(fetchUserProfile);
   border: 1px solid rgba(255, 255, 255, 0.2);
 border-radius: 16px;
 padding: 2rem 2rem;
-width: 1105px;
+max-width: 1105px;
+width: 100%;
 display: flex;
 align-items: center;
 background: #222;

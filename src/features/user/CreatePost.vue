@@ -16,15 +16,31 @@ const close = () => {
 const title = ref("");
 const content = ref("");
 const image = ref("");
+const categoryId = ref("");
+const categories = ref([]); // Список категорий
+
+const successMessage = ref("");
+const errorMessage = ref("");
+
+
 const emit = defineEmits(["postCreated"]);
 
+// Получение списка категорий при загрузке компонента
+onMounted(async () => {
+    try {
+        const response = await axios.get("http://localhost:3000/posts/categories");
+        categories.value = response.data;
+    } catch (error) {
+        console.error("Ошибка при загрузке категорий:", error);
+    }
+});
 
 const createPost = async () => {
     try {
         const token = localStorage.getItem("token");
         const response = await axios.post(
             "http://localhost:3000/posts/create",
-            { title: title.value, content: content.value, image: image.value },
+            { title: title.value, content: content.value, image: image.value, category_id: categoryId.value, },
             { headers: { Authorization: `Bearer ${token}` } }
         );
 
@@ -32,6 +48,7 @@ const createPost = async () => {
         title.value = "";
         content.value = "";
         image.value = "";
+        categoryId.value = "";
 
         // Сообщаем родительскому компоненту, что пост создан
         emit("postCreated");
@@ -74,13 +91,30 @@ const createPost = async () => {
             <button class="buttons__close" @click="close">Отмена</button>
           </div>
         </div>
-        <div class="create-post">
-          <h2>Создать пост</h2>
-          <input v-model="title" type="text" placeholder="Заголовок" />
-          <textarea v-model="content" placeholder="Текст поста"></textarea>
-          <input v-model="image" type="text" placeholder="Ссылка на изображение" />
-          <button @click="createPost">Опубликовать</button>
-      </div>
+
+
+
+
+        <div class="post-form">
+            <h2>Создать пост</h2>
+            
+            <input v-model="title" placeholder="Заголовок" />
+            <textarea v-model="content" placeholder="Текст поста"></textarea>
+            <input v-model="image" placeholder="Ссылка на изображение (необязательно)" />
+            
+            <!-- 📌 Выбор категории -->
+            <select v-model="categoryId">
+              <option value="">Выберите категорию</option>
+              <option v-for="category in categories" :key="category.id" :value="category.id">
+                {{ category.name }}
+              </option>
+            </select>
+        
+            <button @click="createPost">Создать</button>
+        
+            <p v-if="successMessage" class="success">{{ successMessage }}</p>
+            <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
+          </div>
       </div>
 </template>
 
