@@ -1,113 +1,18 @@
 <script setup>
-import { ref, defineProps, defineEmits, onMounted } from "vue";
+import { ref, onMounted } from "vue";
+import { defineProps, defineEmits } from "vue";
 import axios from "axios";
 
-const props = defineProps(["isOpen"]);
-const emit = defineEmits(["close"]);
+defineProps({
+  isOpen: Boolean,
+});
 
-const fullName = ref("");
-const login = ref("");
-const category = ref("");
-const password = ref("");
-const fileAvatar = ref(null);
-const avatarPreview = ref("");
-const categories = ref([]);
-const user = ref(null);
-const errorMessage = ref("");
-const message = ref("");
+// const emit = defineEmits(["close"]);
 
-
-// Получение данных пользователя
-const fetchUserData = async () => {
-  try {
-    const token = localStorage.getItem("token");
-    const response = await axios.get("http://localhost:3000/profile", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    user.value = response.data;
-    fullName.value = user.value.full_name;
-    login.value = user.value.login;
-    category.value = user.value.category;
-    avatarPreview.value = user.value.avatar;
-  } catch (error) {
-    errorMessage.value = "Ошибка загрузки данных профиля";
-  }
-};
-
-// Получение списка категорий
-const fetchCategories = async () => {
-  try {
-    const response = await axios.get("http://localhost:3000/api/categories");
-    categories.value = response.data;
-  } catch (error) {
-    errorMessage.value = "Ошибка загрузки категорий";
-  }
-};
-
-// Обработчик загрузки аватара
-const handleFileChange = (event) => {
-  fileAvatar.value = event.target.files[0];
-  if (fileAvatar.value) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      avatarPreview.value = e.target.result;
-    };
-    reader.readAsDataURL(fileAvatar.value);
-  }
-};
-
-// Обновление профиля
-const updateProfile = async () => {
-  const formData = new FormData();
-  formData.append("fullName", fullName.value);
-  formData.append("login", login.value);
-  formData.append("category", category.value);
-  if (fileAvatar.value) {
-    formData.append("fileAvatar", fileAvatar.value);
-  }
-  if (password.value) {
-    formData.append("password", password.value);
-  }
-
-  try {
-    const token = localStorage.getItem("token");
-    const response = await axios.put("http://localhost:3000/profile", formData, {
-      headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" },
-    });
-
-    message.value = "Профиль успешно обновлён!";
-    user.value = response.data.user;
-  } catch (error) {
-    errorMessage.value = "Ошибка при обновлении профиля";
-  }
-};
-
-// Удаление профиля
-const deleteProfile = async () => {
-  try {
-    const token = localStorage.getItem("token");
-    await axios.delete("http://localhost:3000/profile", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    localStorage.removeItem("token");
-    emit("close");
-  } catch (error) {
-    errorMessage.value = "Ошибка при удалении профиля";
-  }
-};
-
-// Закрытие модального окна
-const closeModal = () => {
+const close = () => {
   emit("close");
 };
 
-// Загружаем данные при открытии модального окна
-onMounted(() => {
-  fetchCategories();
-  fetchUserData();
-});
 </script>
 
 <template>
@@ -115,7 +20,7 @@ onMounted(() => {
     <div class="modal-content">
       <h2>Редактировать профиль</h2>
       <div>
-        <input class="modal-content__file" type="file" @change="handleFileChange" />
+        <input class="modal-content__file" type="file" />
         <!-- <img class="preview-avatar" :src="avatarPreview" v-if="avatarPreview" /> -->
       </div>
       <div>
@@ -141,7 +46,7 @@ onMounted(() => {
         <input v-model="login" type="text" />
       </div>
       <button @click="updateProfile">Сохранить</button>
-      <button @click="closeModal">Закрыть</button>
+      <button @click="close">Закрыть</button>
       <button @click="deleteProfile">Удалить профиль</button>
 
       <p v-if="message" class="success">{{ message }}</p>

@@ -1,58 +1,205 @@
 <script setup>
-import { ref, onMounted, onUnmounted, nextTick } from "vue";
+import { ref, onMounted } from "vue";
+import {useRoute, useRouter} from "vue-router";
 import axios from "axios";
 
-const newMessage = ref('');
+const route = useRoute();
+const friendId = route.params.id; // ID друга из URL
+const messages = ref([]); // Список сообщений
+const newMessage = ref(""); // Новое сообщение
+const currentUser = ref(null); // Текущий пользователь
+const messagesContainer = ref(null);
+
+const user = ref(null);
+const errorMessage = ref("");
+
+const isFriend = ref(false);
+
+const fetchUserProfile = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    const userId = route.params.id;
+
+    // Получаем информацию о пользователе
+    const userResponse = await axios.get(`http://localhost:3000/users/${userId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    user.value = userResponse.data;
+
+    // Проверяем, является ли этот пользователь другом
+    const friendResponse = await axios.get(`http://localhost:3000/friends/check/${userId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    isFriend.value = friendResponse.data.isFriend;
+
+  } catch (error) {
+    console.error("Ошибка загрузки профиля пользователя:", error);
+    errorMessage.value = "Ошибка загрузки данных пользователя";
+  }
+};
+
+// Получение ID текущего пользователя
+const fetchCurrentUser = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.get("http://localhost:3000/users/me", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    currentUser.value = response.data;
+  } catch (error) {
+    console.error("Ошибка загрузки текущего пользователя:", error);
+  }
+};
+
+// Загрузка сообщений (имитация бекенда)
+// const fetchMessages = async () => {
+//   try {
+//     const token = localStorage.getItem("token");
+//     const response = await axios.get(`http://localhost:3000/messages/${friendId}`, {
+//       headers: { Authorization: `Bearer ${token}` },
+//     });
+//     messages.value = response.data;
+//   } catch (error) {
+//     console.error("Ошибка загрузки сообщений:", error);
+//   }
+// };
+//
+// // Отправка сообщения
+// const sendMessage = async () => {
+//   if (newMessage.value.trim() === "") return;
+//
+//   try {
+//     const token = localStorage.getItem("token");
+//
+//     // Добавляем сообщение в список сообщений
+//     messages.value.push({
+//       sender_id: currentUser.value.id,
+//       receiver_id: friendId,
+//       content: newMessage.value,
+//     });
+//
+//     newMessage.value = ""; // Очищаем поле ввода
+//   } catch (error) {
+//     console.error("Ошибка отправки сообщения:", error);
+//   }
+// };
+
+// Загрузка сообщений
+const fetchMessages = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.get(`http://localhost:3000/messages/${friendId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    messages.value = response.data;
+  } catch (error) {
+    console.error("Ошибка загрузки сообщений:", error);
+  }
+};
+
+// Отправка сообщения
+const sendMessage = async () => {
+  if (newMessage.value.trim() === "") return;
+
+  try {
+    const token = localStorage.getItem("token");
+    await axios.post(
+        "http://localhost:3000/messages/send",
+        {
+          receiverId: friendId,
+          content: newMessage.value,
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    // Добавляем сообщение в список сообщений
+    messages.value.push({
+      sender_id: currentUser.value.id,
+      receiver_id: friendId,
+      content: newMessage.value,
+    });
+
+    newMessage.value = ""; // Очищаем поле ввода
+  } catch (error) {
+    console.error("Ошибка отправки сообщения:", error);
+  }
+};
+
+
+onMounted(() => {
+  fetchCurrentUser();
+  fetchMessages();
+  fetchUserProfile();
+  sendMessage();
+});
 
 </script>
 
 <template>
   <div class="chat-container">
-    <div class="chat-header">
-      <div class="avatar"></div>
+    <div v-if="user" class="chat-header">
+      <img src="@/assets/images/bc-auth.jpg" class="avatar" width="100" alt="Аватар">
       <div class="user-info">
-        <h2>Имя Фамилия</h2>
-        <p>@name</p>
+        <h2 style="font-size: 1.8rem">{{ user.name }}</h2>
+        <p>@{{ user.login }}</p>
       </div>
     </div>
-    
+
     <div class="chat-messages">
-      <div class="message received">
-        <div class="avatar-small"></div>
+      <div
+          v-for="message in messages"
+          :key="message.id"
+          :class="['message', message.sender_id === currentUser?.id ? 'sent' : 'received']"
+      >
+        <div v-if="message.sender_id !== currentUser?.id" class="avatar-small"></div>
         <div class="message-bubble">
-          <p>Новое сообщение</p>
-          <span class="timestamp">11:31 AM</span>
-        </div>
-      </div>
-      
-      <div class="message received">
-        <div class="avatar-small"></div>
-        <div class="message-bubble">
-          <p>Новое сообщение</p>
-          <span class="timestamp">11:31 AM</span>
-        </div>
-      </div>
-      
-      <div class="message sent">
-        <div class="message-bubble">
-          <p>Новое сообщение</p>
+          <p>{{ message.content }}</p>
           <span class="timestamp">11:31 AM</span>
         </div>
       </div>
     </div>
-    
+
     <div class="chat-input">
-      <input type="text" placeholder="Начните печатать..." />
-      <button class="send-button">
+      <input v-model="newMessage" type="text" placeholder="Начните печатать..." />
+      <button @click="sendMessage" class="send-button">
         <svg width="24" height="20" viewBox="0 0 24 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path fill-rule="evenodd" clip-rule="evenodd" d="M2.32816 2.3259L3.51514 8.9115H10.839C11.462 8.9115 11.9671 9.39883 11.9671 10C11.9671 10.6012 11.462 11.0885 10.839 11.0885H3.51514L2.32816 17.6741L20.8856 10L2.32816 2.3259ZM1.42128 10L0.0298591 2.28007C-0.0826259 1.65598 0.12666 1.0181 0.590875 0.570172C1.17415 0.00737042 2.05378 -0.156094 2.81196 0.157439L22.9707 8.49374C23.5951 8.75198 24 9.34445 24 10C24 10.6555 23.5951 11.248 22.9707 11.5063L2.81196 19.8425C2.05378 20.1561 1.17415 19.9926 0.590875 19.4299C0.12666 18.9819 -0.0826262 18.344 0.0298591 17.7199L1.42128 10Z" fill="#8E8E93" />
+          <path
+              fill-rule="evenodd"
+              clip-rule="evenodd"
+              d="M2.32816 2.3259L3.51514 8.9115H10.839C11.462 8.9115 11.9671 9.39883 11.9671 10C11.9671 10.6012 11.462 11.0885 10.839 11.0885H3.51514L2.32816 17.6741L20.8856 10L2.32816 2.3259ZM1.42128 10L0.0298591 2.28007C-0.0826259 1.65598 0.12666 1.0181 0.590875 0.570172C1.17415 0.00737042 2.05378 -0.156094 2.81196 0.157439L22.9707 8.49374C23.5951 8.75198 24 9.34445 24 10C24 10.6555 23.5951 11.248 22.9707 11.5063L2.81196 19.8425C2.05378 20.1561 1.17415 19.9926 0.590875 19.4299C0.12666 18.9819 -0.0826262 18.344 0.0298591 17.7199L1.42128 10Z"
+              fill="#8E8E93"
+          />
         </svg>
       </button>
     </div>
   </div>
+
+  <div>
+    <h2>Чат с пользователем</h2>
+
+    <div v-for="msg in messages" :key="msg.id">
+      <p :class="msg.sender_id === currentUser?.id ? 'me' : 'friend'">
+        {{ msg.content }}
+      </p>
+    </div>
+
+    <input v-model="newMessage" placeholder="Введите сообщение" />
+    <button @click="sendMessage">Отправить</button>
+  </div>
 </template>
 
 <style lang="scss" scoped>
+
+.me {
+  text-align: right;
+  color: blue;
+}
+
+.friend {
+  text-align: left;
+  color: green;
+}
+
 .chat-container {
   border: 1px solid rgba(255, 255, 255, 0.1);
 border-radius: 16px;
@@ -75,7 +222,6 @@ position: relative;
   .avatar {
     width: 48px;
     height: 48px;
-    background: #0f0;
     border-radius: 50%;
   }
 
@@ -173,6 +319,30 @@ bottom: 64px;
       width: 20px;
       height: 20px;
     }
+  }
+}
+
+@media (max-width: 768px) {
+  .chat-container {
+    padding: 16px;
+    max-width: 100%;
+    height: 100vh;
+  }
+
+  .chat-header {
+    padding-bottom: 8px;
+  }
+
+  .chat-messages {
+    max-height: calc(100% - 120px);
+  }
+
+  .chat-input {
+    padding: 10px;
+  }
+
+  .message-bubble {
+    max-width: 85%;
   }
 }
 </style>

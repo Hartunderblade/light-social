@@ -1,21 +1,53 @@
 <script setup>
-import { ref } from "vue";
-import Chat from '@/features/user/Chat.vue';
+import { ref, onMounted } from "vue";
+import axios from "axios";
+import {useRoute, useRouter} from "vue-router";
+
+const router = useRouter();
+const route = useRoute();
+
+const friends = ref([]);
+const user = ref(null);
+const posts = ref([]);
+const errorMessage = ref("");
+
+const isFriend = ref(false);
+
+
+const fetchFriends = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.get("http://localhost:3000/friends/list", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    friends.value = response.data;
+  } catch (error) {
+    console.error("Ошибка загрузки списка друзей:", error);
+  }
+};
+
+// Открытие чата с пользователем
+const openChat = () => {
+  router.push(`/user/chat/${route.params.id}`);
+};
+
+onMounted(fetchFriends);
 </script>
 
 <template>
   <div class="chat-list">
     <div class="chat-list__title">Все сообщения</div>
     <div class="items">
-      <div class="item">
+      <div class="item" v-for="friend in friends" :key="friend.id">
         <div class="user">
-          <img class="user__img" src="@/assets/images/defolt-img.jpg" alt="">
+          <img class="user__img" src="@/assets/images/bc-auth.jpg" alt="">
           <div class="user-text">
-            <p class="user-text__name">Имя Фамилия</p>
-            <p class="user-text__login">@name</p>
+            <p class="user-text__name">{{ friend.name }}</p>
+            <p class="user-text__login">@{{ friend.login }}</p>
           </div>
         </div>
-        <button class="item__message">Написать</button>
+        <button class="item__message" @click="openChat">Написать</button>
       </div>
     </div>
   </div>

@@ -3,9 +3,9 @@ import { ref, onMounted } from "vue";
 import axios from "axios";
 import { useRouter } from "vue-router";
 import EditProfile from "@/features/user/EditProfile.vue";
-import SettingsUser from "@/widgets/SettingsUser.vue";
 import AddPost from "@/widgets/AddPost.vue";
 import ListPostsUser from "@/widgets/ListPostsUser.vue";
+import SettingsUserModal from "@/widgets/SettingsUserModal.vue"
 
 const router = useRouter();
 const user = ref(null);
@@ -51,6 +51,7 @@ onMounted(fetchUserProfile);
         <div class="categories">
           <p class="category">{{ user.category }}</p>
         </div>
+        <SettingsUserModal/>
         <!-- <SettingsUser @click="openModal"/> -->
         <!-- <EditProfile :isOpen="isModalOpen" @close="closeModal"/> -->
       </div>
@@ -59,26 +60,6 @@ onMounted(fetchUserProfile);
       </div>
     </div>
   <div>
-  
-  <!-- <div  class="post">
-      <div class="user" >
-          <img class="user__avatar" src="@/assets/images/defolt-img.jpg" alt="Аватар">
-          <div class="user-info">
-              <p class="user-info__name">Имя</p>
-              <div style="width: 100px;" class="user-info__category">Категория</div>
-          </div>
-          <button class="user__redactor">
-              <img src="@/assets/images/icons/edit.svg" alt="Редактировать пост" />
-          </button>
-      </div>
-      <div>
-        <div class="post-content">
-          <p class="post-content__text">еукст</p>
-          <img class="post-content__img" src=""
-              alt="Теннисные ракетки на корте">
-      </div>
-      </div>
-  </div> -->
   <ListPostsUser/>
 </div>
 </div>
@@ -88,6 +69,7 @@ onMounted(fetchUserProfile);
 
 .profile {
   margin-top: 5rem;
+  width: 100%;
 }
 
 .blocks {
@@ -101,6 +83,7 @@ onMounted(fetchUserProfile);
   height: 100px;
   margin-right: 1rem;
 }
+
 .left {
   border: 1px solid rgba(255, 255, 255, 0.2);
 border-radius: 16px;
@@ -110,7 +93,6 @@ width: 100%;
 display: flex;
 align-items: center;
 background: #222;
-position: relative;
 }
 
 .name {

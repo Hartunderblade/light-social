@@ -1,38 +1,55 @@
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted } from "vue";
 import axios from "axios";
 import { useRouter } from "vue-router";
 
+const users = ref([]);
+const currentUser = ref(null);
+const errorMessage = ref("");
 const router = useRouter();
 
-const users = ref([]);
-const errorMessage = ref("");
-
-// поиск пользователей
-const searchQuery = ref("");
-
 const fetchUsers = async () => {
-  try {
-    const token = localStorage.getItem("token");
-    const response = await axios.get("http://localhost:3000/api/users", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    users.value = response.data;
-  } catch (error) {
-    console.error("Ошибка при загрузке пользователей:", error);
-    errorMessage.value = "Ошибка при загрузке пользователей";
-  }
+    try {
+        const token = localStorage.getItem("token");
+
+        // Получаем текущего пользователя
+        const userResponse = await axios.get("http://localhost:3000/users/me", {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        currentUser.value = userResponse.data;
+
+        // Получаем список всех пользователей, кроме текущего
+        const usersResponse = await axios.get("http://localhost:3000/users/all", {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+
+        users.value = usersResponse.data.filter(user => user.id !== currentUser.value.id);
+    } catch (error) {
+        console.error("Ошибка загрузки пользователей:", error);
+        errorMessage.value = "Ошибка загрузки пользователей";
+    }
 };
 
-// функция поиска пользователя
+// Функция перехода на страницу пользователя
+const goToUserProfile = (userId) => {
+    router.push(`/user/frends/${userId}`);
+};
 
-const searchUser = computed(() => {
-  return users.value.filter((user) => `${user.full_name} ${user.login}`.toLowerCase().includes(searchQuery.value.toLowerCase()));
-});
+const addFriend = async (friendId) => {
+    try {
+        const token = localStorage.getItem("token");
 
-// Переход в профиль пользователя
-const goToProfile = (userId) => {
-  router.push(`/user/frends/${userId}`);
+        await axios.post(
+            "http://localhost:3000/friends/add",
+            { friendId },
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        alert("Пользователь добавлен в друзья!");
+    } catch (error) {
+        console.error("Ошибка добавления в друзья:", error);
+        alert("Не удалось добавить в друзья");
+    }
 };
 
 onMounted(fetchUsers);
@@ -42,18 +59,16 @@ onMounted(fetchUsers);
   <div class="all">
     <input v-model="searchQuery" placeholder="Найди друга по интересам..." class="search" required/>
     <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
-    <div v-if="searchUser.length > 0" class="users">
+    <div class="users">
       <div v-for="user in users" :key="user.id" class="user">
-        <img :src="user.avatar ? `http://localhost:3000${user.avatar}` : 'src/assets/images/defolt-img.jpg'" alt="Аватар" width="50" class="avatar" v-if="user.avatar" />
+        <img src="@/assets/images/bc-auth.jpg" alt="Аватар" width="50" class="avatar" />
         <div class="text">
-          <p>{{ user.full_name }}</p>
+          <p>{{ user.name }}</p>
           <p>@{{ user.login }}</p>
         </div>
-        <button @click="goToProfile(user.id)">Перейти</button>
+        <button @click="goToUserProfile(user.id)">Перейти</button>
       </div>
     </div>
-    <p v-else>Пользователь не найден</p>
-    
   </div>
 </template>
 
@@ -65,9 +80,9 @@ onMounted(fetchUsers);
   width: 360px;
   background: #222;
 
-  position: absolute;
-  top: 80px;
-  right: 30px;
+  //position: absolute;
+  //top: 80px;
+  //right: 30px;
 }
 
 .users {

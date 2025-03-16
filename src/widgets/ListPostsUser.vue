@@ -25,7 +25,7 @@ onMounted(fetchPosts);
 
 <template>
   <div list>
-    <div v-if="posts.length === 0">Нет постов</div>
+    <div style="font-size: 3rem; font-weight:500;" v-if="posts.length === 0">Нет постов</div>
 <div v-for="post in posts" :key="post.id" class="post">
 
     

@@ -7,9 +7,9 @@ import SearchUsers from '@/features/user/SearchUsers.vue';
 </script>
 
 <template>
-  <div>
+  <div style="width: 100%; display:flex; column-gap: 2rem; margin-top: 3rem;">
     <!-- <UsersList/> -->
-    <!-- <FrendsList/> -->
+    <FrendsList/>
     <SearchUsers/>
   </div>
 </template>
