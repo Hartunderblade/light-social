@@ -11,6 +11,8 @@ const router = useRouter();
 const user = ref(null);
 const errorMessage = ref("");
 
+const isEditModalOpen = ref(false);
+
 const isModalOpen = ref(false);
 
 const openModal = () => {
@@ -33,6 +35,8 @@ const fetchUserProfile = async () => {
     }
 };
 
+
+
 // console.log("Запрос профиля для ID:", userId);
 
 
@@ -51,7 +55,7 @@ onMounted(fetchUserProfile);
         <div class="categories">
           <p class="category">{{ user.category }}</p>
         </div>
-        <SettingsUserModal/>
+        <SettingsUserModal  />
         <!-- <SettingsUser @click="openModal"/> -->
         <!-- <EditProfile :isOpen="isModalOpen" @close="closeModal"/> -->
       </div>

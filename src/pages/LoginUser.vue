@@ -10,22 +10,29 @@ const token = ref(null);
 
 const router = useRouter();
 
-
-
 const loginUser = async () => {
-    try {
-        const response = await axios.post('http://localhost:3000/auth/login', {
-            login: login.value,
-            password: password.value
-        });
-
-        token.value = response.data.token;
-        localStorage.setItem('token', token.value); // Сохраняем токен
-        alert("Вход выполнен успешно!");
-        router.push('/user/profile');
-    } catch (error) {
-        errorMessage.value = error.response?.data?.message || "Ошибка входа";
+  try {
+    // Проверка на админа
+    if (login.value === 'admin123' && password.value === 'admin12345678') {
+      // Сохраняем токен администратора
+      localStorage.setItem('token', 'admin-token');
+      router.push('/admin'); // Перенаправление на страницу администратора
+      return;
     }
+
+    // Вход для обычного пользователя
+    const response = await axios.post('http://localhost:3000/auth/login', {
+      login: login.value,
+      password: password.value
+    });
+
+    token.value = response.data.token;
+    localStorage.setItem('token', token.value); // Сохраняем токен
+    alert("Вход выполнен успешно!");
+    router.push('/user/profile'); // Перенаправляем пользователя на его страницу
+  } catch (error) {
+    errorMessage.value = error.response?.data?.message || "Ошибка входа";
+  }
 };
 
 

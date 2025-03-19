@@ -15,6 +15,14 @@ const errorMessage = ref("");
 
 const isFriend = ref(false);
 
+
+// Функция для форматирования времени (HH:mm)
+const formatTime = (timestamp) => {
+  if (!timestamp) return ""; // Защита от undefined
+  const date = new Date(timestamp);
+  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+};
+
 const fetchUserProfile = async () => {
   try {
     const token = localStorage.getItem("token");
@@ -51,39 +59,6 @@ const fetchCurrentUser = async () => {
   }
 };
 
-// Загрузка сообщений (имитация бекенда)
-// const fetchMessages = async () => {
-//   try {
-//     const token = localStorage.getItem("token");
-//     const response = await axios.get(`http://localhost:3000/messages/${friendId}`, {
-//       headers: { Authorization: `Bearer ${token}` },
-//     });
-//     messages.value = response.data;
-//   } catch (error) {
-//     console.error("Ошибка загрузки сообщений:", error);
-//   }
-// };
-//
-// // Отправка сообщения
-// const sendMessage = async () => {
-//   if (newMessage.value.trim() === "") return;
-//
-//   try {
-//     const token = localStorage.getItem("token");
-//
-//     // Добавляем сообщение в список сообщений
-//     messages.value.push({
-//       sender_id: currentUser.value.id,
-//       receiver_id: friendId,
-//       content: newMessage.value,
-//     });
-//
-//     newMessage.value = ""; // Очищаем поле ввода
-//   } catch (error) {
-//     console.error("Ошибка отправки сообщения:", error);
-//   }
-// };
-
 // Загрузка сообщений
 const fetchMessages = async () => {
   try {
@@ -91,7 +66,11 @@ const fetchMessages = async () => {
     const response = await axios.get(`http://localhost:3000/messages/${friendId}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    messages.value = response.data;
+    messages.value = response.data.map(msg => ({
+      ...msg,
+      formattedTime: formatTime(msg.created_at) // Форматируем время
+    }));
+
   } catch (error) {
     console.error("Ошибка загрузки сообщений:", error);
   }
@@ -99,11 +78,11 @@ const fetchMessages = async () => {
 
 // Отправка сообщения
 const sendMessage = async () => {
-  if (newMessage.value.trim() === "") return;
+  if (!newMessage.value.trim()) return;
 
   try {
     const token = localStorage.getItem("token");
-    await axios.post(
+    const response = await axios.post(
         "http://localhost:3000/messages/send",
         {
           receiverId: friendId,
@@ -112,14 +91,17 @@ const sendMessage = async () => {
         { headers: { Authorization: `Bearer ${token}` } }
     );
 
-    // Добавляем сообщение в список сообщений
-    messages.value.push({
-      sender_id: currentUser.value.id,
-      receiver_id: friendId,
-      content: newMessage.value,
-    });
+    if (response.data) {
+      messages.value.push({
+        id: response.data.id, // ID сообщения
+        sender_id: currentUser.value.id,
+        receiver_id: friendId,
+        content: newMessage.value,
+        formattedTime: formatTime(response.data.created_at), // Берем `created_at` из ответа
+      });
 
-    newMessage.value = ""; // Очищаем поле ввода
+      newMessage.value = ""; // Очищаем поле ввода
+    }
   } catch (error) {
     console.error("Ошибка отправки сообщения:", error);
   }
@@ -136,7 +118,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="chat-container">
+  <div style="margin-top: 3rem;" class="chat-container">
     <div v-if="user" class="chat-header">
       <img src="@/assets/images/bc-auth.jpg" class="avatar" width="100" alt="Аватар">
       <div class="user-info">
@@ -154,7 +136,7 @@ onMounted(() => {
         <div v-if="message.sender_id !== currentUser?.id" class="avatar-small"></div>
         <div class="message-bubble">
           <p>{{ message.content }}</p>
-          <span class="timestamp">11:31 AM</span>
+          <span class="timestamp">{{ message.formattedTime }}</span>
         </div>
       </div>
     </div>
@@ -172,19 +154,6 @@ onMounted(() => {
         </svg>
       </button>
     </div>
-  </div>
-
-  <div>
-    <h2>Чат с пользователем</h2>
-
-    <div v-for="msg in messages" :key="msg.id">
-      <p :class="msg.sender_id === currentUser?.id ? 'me' : 'friend'">
-        {{ msg.content }}
-      </p>
-    </div>
-
-    <input v-model="newMessage" placeholder="Введите сообщение" />
-    <button @click="sendMessage">Отправить</button>
   </div>
 </template>
 

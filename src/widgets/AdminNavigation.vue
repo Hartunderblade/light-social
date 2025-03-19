@@ -1,14 +1,14 @@
 <script setup>
-import { RouterLink, RouterView } from 'vue-router';
-import { ref } from 'vue';
-import { useRouter } from "vue-router";
+import { useRouter } from 'vue-router';
 
+// Получаем роутер для перенаправления
 const router = useRouter();
 
 const logout = () => {
-//   localStorage.removeItem("token");
-//   localStorage.removeItem("role");
-  router.push("/");
+  // Удаляем токен администратора из localStorage
+  localStorage.removeItem('token');
+  // Перенаправляем на страницу входа
+  router.push('/');
 };
 </script>
 

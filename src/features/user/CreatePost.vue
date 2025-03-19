@@ -66,28 +66,29 @@ const createPost = async () => {
           <h2 class="modal__title">Создание поста</h2>
     
           <div class="category">
-            <select v-model="selectedCategory">
+            <select  v-model="categoryId">
               <option disabled value="">Выберите категорию</option>
-              <option v-for="cat in categories" :key="cat.id" :value="cat.name">
-                {{ cat.name }}
+              <option v-for="category in categories" :key="category.id" :value="category.id">
+                {{ category.name }}
               </option>
             </select>
-            <p class="category__selected">{{ selectedCategory }}</p>
+<!--            <p class="category__selected">{{ category.name }}</p>-->
           </div>
     
           <div style="display: flex; column-gap: 1rem; margin-top: 26px;">
-            <textarea class="modal__text" v-model="text" placeholder="Введите текст поста"></textarea>
-            <input
-              style="border: 2px dashed rgba(255, 255, 255, 0.2); border-radius: 16px; padding: 51px 16px; width: 235px; height: 179px; background: #222;"
-              type="file"
-              @change="handleImageUpload"
-            />
+            <textarea class="modal__text" v-model="content" placeholder="Введите текст поста"></textarea>
+<!--            <input-->
+<!--              style="border: 2px dashed rgba(255, 255, 255, 0.2); border-radius: 16px; padding: 51px 16px; width: 235px; height: 179px; background: #222;"-->
+<!--              type="file"-->
+<!--              @change="handleImageUpload"-->
+<!--            />-->
+            <input style="border: 2px dashed rgba(255, 255, 255, 0.2); border-radius: 16px; padding: 51px 16px; width: 235px; height: 179px; background: #222;" v-model="image" placeholder="Ссылка на изображение (необязательно)" />
           </div>
     
-          <img v-if="imageUrl" :src="imageUrl" alt="Изображение поста" class="preview-img" />
+          <img v-if="image" :src="image" alt="Изображение поста" class="preview-img" />
     
           <div class="buttons">
-            <button class="buttons__save" @click="savePost">Сохранить</button>
+            <button class="buttons__save" @click="createPost">Сохранить</button>
             <button class="buttons__close" @click="close">Отмена</button>
           </div>
         </div>
@@ -95,26 +96,26 @@ const createPost = async () => {
 
 
 
-        <div class="post-form">
-            <h2>Создать пост</h2>
-            
-            <input v-model="title" placeholder="Заголовок" />
-            <textarea v-model="content" placeholder="Текст поста"></textarea>
-            <input v-model="image" placeholder="Ссылка на изображение (необязательно)" />
-            
-            <!-- 📌 Выбор категории -->
-            <select v-model="categoryId">
-              <option value="">Выберите категорию</option>
-              <option v-for="category in categories" :key="category.id" :value="category.id">
-                {{ category.name }}
-              </option>
-            </select>
-        
-            <button @click="createPost">Создать</button>
-        
-            <p v-if="successMessage" class="success">{{ successMessage }}</p>
-            <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
-          </div>
+<!--        <div class="post-form">-->
+<!--            <h2>Создать пост</h2>-->
+<!--            -->
+<!--            <input v-model="title" placeholder="Заголовок" />-->
+<!--            <textarea v-model="content" placeholder="Текст поста"></textarea>-->
+<!--            <input v-model="image" placeholder="Ссылка на изображение (необязательно)" />-->
+<!--            -->
+<!--            &lt;!&ndash; 📌 Выбор категории &ndash;&gt;-->
+<!--            <select v-model="categoryId">-->
+<!--              <option value="">Выберите категорию</option>-->
+<!--              <option v-for="category in categories" :key="category.id" :value="category.id">-->
+<!--                {{ category.name }}-->
+<!--              </option>-->
+<!--            </select>-->
+<!--        -->
+<!--            <button @click="createPost">Создать</button>-->
+<!--        -->
+<!--            <p v-if="successMessage" class="success">{{ successMessage }}</p>-->
+<!--            <p v-if="errorMessage" class="error">{{ errorMessage }}</p>-->
+<!--          </div>-->
       </div>
 </template>
 

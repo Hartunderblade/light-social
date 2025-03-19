@@ -1,65 +1,73 @@
 <script setup>
-// import { RouterLink, RouterView } from 'vue-router'
+import { ref, onMounted } from "vue";
+import axios from "axios";
+
+const posts = ref([]);
+const loading = ref(true);
+
+const fetchPosts = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.get("http://localhost:3000/posts/news", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    posts.value = response.data;
+  } catch (error) {
+    console.error("Ошибка при загрузке постов:", error);
+  } finally {
+    loading.value = false;
+  }
+};
+
+const formatDate = (dateString) => {
+  return new Date(dateString).toLocaleString();
+};
+
+onMounted(fetchPosts);
 </script>
 
 <template>
+<!--  <div class="post-list">-->
+<!--    <h2>Посты по вашей категории</h2>-->
+
+<!--    <div v-if="loading" class="loading">Загрузка...</div>-->
+<!--    <div v-else-if="posts.length === 0" class="no-posts">Нет постов в вашей категории</div>-->
+
+<!--    <div v-for="post in posts" :key="post.id" class="post">-->
+<!--      <div class="post-header">-->
+<!--        <img :src="post.avatar || '/default-avatar.png'" alt="Аватар" class="avatar">-->
+<!--        <div>-->
+<!--          <h3>{{ post.name }}</h3>-->
+<!--          <span class="timestamp">{{ formatDate(post.created_at) }}</span>-->
+<!--        </div>-->
+<!--      </div>-->
+<!--      <h4 class="post-title">{{ post.title }}</h4>-->
+<!--      <p class="post-content">{{ post.content }}</p>-->
+<!--      <img v-if="post.image" :src="post.image" alt="Изображение поста" class="post-image">-->
+<!--    </div>-->
+<!--  </div>-->
+
+
     <div class="content">
         <div class="news">
             <h1 class="news__title">Новостная лента</h1>
-            <div class="post">
+          <div v-if="loading" class="loading">Загрузка...</div>
+          <div v-else-if="posts.length === 0" class="no-posts">Нет постов в вашей категории</div>
+            <div  v-for="post in posts" :key="post.id" class="post">
                 <div class="profile">
                     <!-- <img src="profile.jpg" alt="Аватар"> -->
                     <div class="profile__avatar"></div>
                     <div class="profile-info">
-                        <p class="profile-info__name">Анна Иванова</p>
-                        <div class="profile-info__category">Спорт</div>
+                        <p class="profile-info__name">{{ post.name }}</p>
+                        <div class="profile-info__category">{{ post.category }}</div>
                     </div>
                 </div>
                 <div class="post-content">
-                    <p class="post-content__text">Plant Lovers! 🌱 As the one steering this green ship, I'm always
-                        excited to hear from you. What's
-                        something fun or surprising your plants have shown you? Tell us about the plant that's been your
-                        greatest teacher or the one with the most personality in your home.</p>
-                    <img class="post-content__img" src="@/assets/images/tenis-post.jpg"
+                    <p class="post-content__text">{{ post.content }}</p>
+                    <img class="post-content__img" :src="post.image"
                         alt="Теннисные ракетки на корте">
                 </div>
             </div>
-          <div class="post">
-            <div class="profile">
-              <!-- <img src="profile.jpg" alt="Аватар"> -->
-              <div class="profile__avatar"></div>
-              <div class="profile-info">
-                <p class="profile-info__name">Анна Иванова</p>
-                <div class="profile-info__category">Спорт</div>
-              </div>
-            </div>
-            <div class="post-content">
-              <p class="post-content__text">Plant Lovers! 🌱 As the one steering this green ship, I'm always
-                excited to hear from you. What's
-                something fun or surprising your plants have shown you? Tell us about the plant that's been your
-                greatest teacher or the one with the most personality in your home.</p>
-              <img class="post-content__img" src="@/assets/images/tenis-post.jpg"
-                   alt="Теннисные ракетки на корте">
-            </div>
-          </div>
-          <div class="post">
-            <div class="profile">
-              <!-- <img src="profile.jpg" alt="Аватар"> -->
-              <div class="profile__avatar"></div>
-              <div class="profile-info">
-                <p class="profile-info__name">Анна Иванова</p>
-                <div class="profile-info__category">Спорт</div>
-              </div>
-            </div>
-            <div class="post-content">
-              <p class="post-content__text">Plant Lovers! 🌱 As the one steering this green ship, I'm always
-                excited to hear from you. What's
-                something fun or surprising your plants have shown you? Tell us about the plant that's been your
-                greatest teacher or the one with the most personality in your home.</p>
-              <img class="post-content__img" src="@/assets/images/tenis-post.jpg"
-                   alt="Теннисные ракетки на корте">
-            </div>
-          </div>
         </div>
     </div>
 </template>
@@ -130,7 +138,7 @@
             border: 1px solid #327ce2;
             border-radius: 18px;
             padding: 5px 17px;
-            width: 74px;
+            //width: 74px;
             color: #fff;
         }
     }

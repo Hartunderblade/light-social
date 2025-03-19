@@ -8,9 +8,7 @@ const router = useRouter();
 const user = ref(null);
 const posts = ref([]);
 const errorMessage = ref("");
-
 const isFriend = ref(false);
-
 
 const fetchUserProfile = async () => {
   try {
@@ -23,7 +21,7 @@ const fetchUserProfile = async () => {
     });
     user.value = userResponse.data;
 
-    // Получаем посты пользователя
+    // Получаем посты пользователя (с категорией)
     const postsResponse = await axios.get(`http://localhost:3000/posts/user/${userId}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -35,25 +33,27 @@ const fetchUserProfile = async () => {
     });
     isFriend.value = friendResponse.data.isFriend;
 
+    console.log("Загруженные посты:", posts.value);
+
   } catch (error) {
     console.error("Ошибка загрузки профиля пользователя:", error);
     errorMessage.value = "Ошибка загрузки данных пользователя";
   }
 };
 
-// Функция добавления в друзья
+// Добавление в друзья
 const addFriend = async () => {
   try {
     const token = localStorage.getItem("token");
     const userId = route.params.id;
 
     await axios.post(
-      "http://localhost:3000/friends/add",
-      { friendId: userId },
-      { headers: { Authorization: `Bearer ${token}` } }
+        "http://localhost:3000/friends/add",
+        { friendId: userId },
+        { headers: { Authorization: `Bearer ${token}` } }
     );
 
-    isFriend.value = true; // Обновляем UI после добавления
+    isFriend.value = true;
     alert("Пользователь добавлен в друзья!");
 
   } catch (error) {
@@ -72,7 +72,7 @@ const removeFriend = async () => {
       headers: { Authorization: `Bearer ${token}` },
     });
 
-    isFriend.value = false; // Обновляем UI после удаления
+    isFriend.value = false;
     alert("Пользователь удалён из друзей!");
   } catch (error) {
     console.error("Ошибка удаления из друзей:", error);
@@ -80,7 +80,7 @@ const removeFriend = async () => {
   }
 };
 
-// Открытие чата с пользователем
+// Открытие чата
 const openChat = () => {
   router.push(`/user/chat/${route.params.id}`);
 };
@@ -118,7 +118,7 @@ onMounted(fetchUserProfile);
           <img class="user__avatar" src="/src/assets/images/bc-auth.jpg" alt="Аватар">
           <div class="user-info">
             <p class="user-info__name">{{ user.name }}</p>
-            <div style="width: 100px;" class="user-info__category">{{ post.category_name || "Без категории" }}</div>
+            <div style="width: 100px;" class="user-info__category">{{ post.category }}</div>
           </div>
         </div>
         <div>

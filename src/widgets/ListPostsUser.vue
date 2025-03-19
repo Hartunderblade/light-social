@@ -1,80 +1,77 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import axios from "axios";
+import EditPost from '@/features/user/EditPost.vue';
 
 const posts = ref([]);
 const errorMessage = ref("");
+const isEditModalOpen = ref(false);
+const selectedPost = ref(null); // Текущий пост для редактирования
 
 const fetchPosts = async () => {
-    try {
-        const token = localStorage.getItem("token");
-        const response = await axios.get("http://localhost:3000/posts/user", {
-            headers: { Authorization: `Bearer ${token}` },
-        });
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.get("http://localhost:3000/posts/user", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
-        posts.value = response.data;
-    } catch (error) {
-        console.error("Ошибка при загрузке постов:", error);
-    }
+    posts.value = response.data;
+  } catch (error) {
+    console.error("Ошибка при загрузке постов:", error);
+  }
 };
 
+// Открытие модального окна для редактирования поста
+const openEditModal = (post) => {
+  selectedPost.value = { ...post }; // Копируем пост в реактивное состояние
+  isEditModalOpen.value = true;
+};
 
+// Закрытие модального окна
+const closeEditModal = () => {
+  isEditModalOpen.value = false;
+  selectedPost.value = null;
+};
+
+// Обновление поста после редактирования
+const updatePostInList = (updatedPost) => {
+  const index = posts.value.findIndex(post => post.id === updatedPost.id);
+  if (index !== -1) {
+    posts.value[index] = updatedPost;
+  }
+  closeEditModal();
+};
 
 onMounted(fetchPosts);
 </script>
 
 <template>
-  <div list>
-    <div style="font-size: 3rem; font-weight:500;" v-if="posts.length === 0">Нет постов</div>
-<div v-for="post in posts" :key="post.id" class="post">
+  <div class="list">
+    <div v-if="posts.length === 0" style="font-size: 3rem; font-weight: 500;">Нет постов</div>
 
-    
-
-      <div class="user" >
-          <img class="user__avatar" src="/src/assets/images/bc-auth.jpg" alt="Аватар">
-          <div class="user-info">
-              <p class="user-info__name">{{ post.name }}</p>
-              <div style="width: 100px;" class="user-info__category">{{ post.category_name || "Без категории" }}</div>
-          </div>
-          <button class="user__redactor">
-              <img src="@/assets/images/icons/edit.svg" alt="Редактировать пост" />
-          </button>
+    <div v-for="post in posts" :key="post.id" class="post">
+      <div class="user">
+        <img class="user__avatar" src="/src/assets/images/bc-auth.jpg" alt="Аватар">
+        <div class="user-info">
+          <p class="user-info__name">{{ post.name }}</p>
+          <div class="user-info__category">{{ post.category_name || "Без категории" }}</div>
+        </div>
+        <button class="user__redactor" @click="openEditModal(post)">
+          <img src="@/assets/images/icons/edit.svg" alt="Редактировать пост" />
+        </button>
       </div>
+
       <div>
         <div class="post-content">
           <p class="post-content__text">{{ post.content }}</p>
           <img class="post-content__img" v-if="post.image" :src="post.image" alt="Изображение поста">
+        </div>
       </div>
-      </div>
-  </div>
-
-
-  </div>
-  
-  <!-- <div class="post-list">
-    <h2>Мои посты</h2>
-
-    <div v-if="posts.length === 0">Нет постов</div>
-
-    <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
-
-    <div v-for="post in posts" :key="post.id" class="post">
-
-      <div class="user-info">
-        <img v-if="post.avatar" :src="post.avatar" alt="Аватар" class="avatar" />
-        <p class="username">{{ post.name }}</p>
-      </div>
-      
-      <h3>{{ post.title }}</h3>
-      <p>{{ post.content }}</p>
-      
-      <p><strong>Категория:</strong> {{ post.category_name || "Без категории" }}</p>
-      
-      <img v-if="post.image" :src="post.image" alt="Изображение поста" class="post-image" />
-      
-      <p class="date">{{ new Date(post.created_at).toLocaleString() }}</p>
     </div>
-  </div> -->
+
+    <!-- Модальное окно редактирования -->
+    <EditPost v-if="isEditModalOpen" :post="selectedPost" @close="closeEditModal" @updated="updatePostInList" />
+  </div>
 </template>
 
 <style scoped lang="scss">

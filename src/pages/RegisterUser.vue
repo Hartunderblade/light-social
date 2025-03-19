@@ -1,8 +1,10 @@
 <script setup>
 import { ref, onMounted } from 'vue';
+
 import axios from 'axios';
+import {useRouter} from "vue-router";
 
-
+const router = useRouter();
 const fileAvatar = ref(null);
 const name = ref("");
 const login = ref("");
@@ -20,7 +22,7 @@ const closeModal = () => {
 
 const fetchCategories = async () => {
     try {
-        const response = await axios.get('http://localhost:3000/categories/all');
+        const response = await axios.get('http://localhost:3000/categories');
         categories.value = response.data;
     } catch (error) {
         console.error("Ошибка загрузки категорий:", error);
@@ -45,6 +47,7 @@ const userRegister = async () => {
 
         alert("Регистрация успешна!");
         // console.log(response.data);
+      router.push('/');
     } catch (error) {
         console.error("Ошибка регистрации:", error);
         alert(error.response.data.message);

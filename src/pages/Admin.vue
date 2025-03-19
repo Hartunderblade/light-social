@@ -16,16 +16,18 @@ const editedCategoryName = ref("");
 
 const fetchCategories = async () => {
   try {
-    const response = await axios.get("http://localhost:3000/api/categories");
+    const response = await axios.get("http://localhost:3000/categories/");
     categories.value = response.data;
   } catch (error) {
     errorMessage.value = "Ошибка загрузки категорий";
   }
 };
 
+
+
 const addCategory = async () => {
   try {
-    await axios.post("http://localhost:3000/api/categories", {
+    await axios.post("http://localhost:3000/categories/add", {
       name: newCategory.value,
     });
     newCategory.value = "";
@@ -47,7 +49,7 @@ const cancelEditing = () => {
 
 const updateCategory = async (id) => {
   try {
-    await axios.put(`http://localhost:3000/api/categories/${id}`, {
+    await axios.put(`http://localhost:3000/categories/update/${id}`, {
       name: editedCategoryName.value,
     });
     cancelEditing();
@@ -61,7 +63,7 @@ const deleteCategory = async (id) => {
   if (!confirm("Вы уверены, что хотите удалить категорию?")) return;
 
   try {
-    await axios.delete(`http://localhost:3000/api/categories/${id}`);
+    await axios.delete(`http://localhost:3000/categories/delete/${id}`);
     fetchCategories();
   } catch (error) {
     errorMessage.value = "Ошибка удаления категории";
