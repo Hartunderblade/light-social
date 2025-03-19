@@ -2,18 +2,17 @@ const express = require("express");
 const pool = require("../db");
 const router = express.Router();
 const authMiddleware = require("../middleware/authMiddleware");
-
-// Получение всех сообщений с пользователем
+// Получение всех сообщений
 router.get("/:friendId", authMiddleware, async (req, res) => {
     const { friendId } = req.params;
-    const userId = req.user.id; // Получаем ID текущего пользователя
+    const userId = req.user.id;
 
     try {
         const messages = await pool.query(
-            `SELECT * FROM messages 
-            WHERE (sender_id = $1 AND receiver_id = $2) 
-            OR (sender_id = $2 AND receiver_id = $1)
-            ORDER BY created_at ASC`,
+            `SELECT *, created_at FROM messages
+             WHERE (sender_id = $1 AND receiver_id = $2)
+                OR (sender_id = $2 AND receiver_id = $1)
+             ORDER BY created_at ASC`,
             [userId, friendId]
         );
         res.json(messages.rows);
@@ -27,6 +26,7 @@ router.get("/:friendId", authMiddleware, async (req, res) => {
 router.post("/send", authMiddleware, async (req, res) => {
     const { receiverId, content } = req.body;
     const senderId = req.user.id;
+    const timestamp = new Date();
 
     if (!content.trim()) {
         return res.status(400).json({ message: "Сообщение не может быть пустым" });
@@ -34,9 +34,9 @@ router.post("/send", authMiddleware, async (req, res) => {
 
     try {
         const newMessage = await pool.query(
-            `INSERT INTO messages (sender_id, receiver_id, content) 
-            VALUES ($1, $2, $3) RETURNING *`,
-            [senderId, receiverId, content]
+            `INSERT INTO messages (sender_id, receiver_id, content, created_at)
+             VALUES ($1, $2, $3, $4) RETURNING *`,
+            [senderId, receiverId, content, timestamp]
         );
 
         res.json(newMessage.rows[0]);
